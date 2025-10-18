@@ -1,0 +1,18 @@
+sot:
+  architecture: docs/ARCHITECTURE.md
+  codebase_overview: docs/CODEBASE_OVERVIEW.md
+  adr:
+    index: docs/ADR/README.md
+    format: docs/ADR/0001-record-format.md
+  api: docs/API/openapi.yaml
+  glossary: docs/GLOSSARY.md
+agent:
+  index: .context/INDEX.md
+  rules: .context/RULES.md
+  task_template: .context/TASK_TEMPLATE.md
+  providers:
+    claude: CLAUDE.md
+    copilot: .github/copilot-instructions.md
+    cursor: .cursor/rules/00-start-here.md
+    continue: .continue/rules/00-start-here.md
+    windsurf: .windsurfrules

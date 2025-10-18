@@ -1,0 +1,25 @@
+{
+  "name": "agents",
+  "private": true,
+  "packageManager": "pnpm@9.15.0",
+  "scripts": {
+    "preinstall": "pnpm --dir web install",
+    "install:web": "pnpm --dir web install",
+    "dev": "pnpm --dir web dev",
+    "build": "pnpm --dir web build",
+    "start": "pnpm --dir web start",
+    "lint": "pnpm --dir web lint",
+    "format": "pnpm --dir web format",
+    "format:write": "pnpm --dir web format:write",
+    "typecheck": "pnpm --dir web typecheck",
+    "test": "pnpm --dir web test"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "pnpm": {
+    "overrides": {
+      "vite-plugin-solid": "2.10.2"
+    }
+  }
+}
