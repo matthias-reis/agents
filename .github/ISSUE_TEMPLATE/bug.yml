@@ -1,0 +1,32 @@
+name: Bug report
+description: Report a defect in the Agents project.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Reference the Single Source of Truth docs: [Architecture](../../docs/ARCHITECTURE.md) and [Codebase Overview](../../docs/CODEBASE_OVERVIEW.md).
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What happened?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Provide clear steps, expected result, and actual result.
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment details
+      description: OS, browser, Node version, etc.
+  - type: textarea
+    id: attachments
+    attributes:
+      label: Logs / screenshots
+      description: Paste relevant logs or attach screenshots.

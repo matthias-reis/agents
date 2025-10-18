@@ -1,0 +1,9 @@
+openapi: 3.1.0
+info:
+  title: Agents API
+  version: 0.0.0
+  description: |
+    Placeholder OpenAPI definition for the Agents project. Update as HTTP endpoints become available.
+servers: []
+paths: {}
+components: {}

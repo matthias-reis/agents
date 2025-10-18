@@ -1,0 +1,30 @@
+name: Feature request
+description: Propose a new feature or enhancement.
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Review the Single Source of Truth docs before filing: [Architecture](../../docs/ARCHITECTURE.md), [Codebase Overview](../../docs/CODEBASE_OVERVIEW.md), and [ADR index](../../docs/ADR/README.md).
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What problem are we solving?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: Outline your approach and reference relevant docs or ADRs.
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: Provide checklist items for success.
+  - type: textarea
+    id: notes
+    attributes:
+      label: Additional context
+      description: Link to designs, spikes, or prior discussions.

@@ -1,3 +1,6 @@
+# pnpm lockfile (root aggregator only; web/pnpm-lock.yaml is tracked)
+/pnpm-lock.yaml
+
 # Logs
 logs
 *.log

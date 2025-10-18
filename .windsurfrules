@@ -1,0 +1,4 @@
+# Windsurf Agent Rules
+
+- Canonical references: [Architecture](docs/ARCHITECTURE.md), [Codebase Overview](docs/CODEBASE_OVERVIEW.md), [ADR Index](docs/ADR/README.md), [Glossary](docs/GLOSSARY.md), [API skeleton](docs/API/openapi.yaml).
+- Observe the shared guardrails in [.context/RULES.md](.context/RULES.md) and update [.context/CONTEXT_REGISTRY.yaml](.context/CONTEXT_REGISTRY.yaml) if new docs are introduced.

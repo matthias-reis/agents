@@ -1,0 +1,18 @@
+diff --git a/dist/esm/index.mjs b/dist/esm/index.mjs
+index c0fa19c8117690c76cce8081d7cbfb880a5dfb78..2450c583d8d402cfee55e8087137492b021e4855 100644
+--- a/dist/esm/index.mjs
++++ b/dist/esm/index.mjs
+@@ -123,10 +123,9 @@ function solidPlugin(options = {}) {
+       // Emulate Vite default fallback for `resolve.conditions` if not set
+       if (config.resolve.conditions == null) {
+         // @ts-ignore These exports only exist in Vite 6
+-        const {
+-          defaultClientConditions,
+-          defaultServerConditions
+-        } = await import('vite');
++        const viteModule = await import('vite');
++        const defaultClientConditions = Array.isArray(viteModule.defaultClientConditions) ? viteModule.defaultClientConditions : [];
++        const defaultServerConditions = Array.isArray(viteModule.defaultServerConditions) ? viteModule.defaultServerConditions : [];
+         if (config.consumer === 'client' || name === 'client' || opts.isSsrTargetWebworker) {
+           config.resolve.conditions = [...defaultClientConditions];
+         } else {
