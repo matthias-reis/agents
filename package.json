@@ -12,10 +12,21 @@
     "format": "pnpm --dir web format",
     "format:write": "pnpm --dir web format:write",
     "typecheck": "pnpm --dir web typecheck",
-    "test": "pnpm --dir web test"
+    "test": "pnpm --dir web test",
+    "agent": "esrun tools/agent.ts"
   },
   "engines": {
     "node": ">=20"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "octokit": "^4.0.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.10",
+    "esrun": "^3.2.28",
+    "typescript": "^5.5.4"
   },
   "pnpm": {
     "overrides": {

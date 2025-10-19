@@ -16,6 +16,16 @@ pnpm dev
 
 The root `pnpm install` command installs dependencies inside `web/` via an automated preinstall step. The development server runs on <http://localhost:3000/>.
 
+## Agent Workflow (Local)
+
+1. Prepare or react to state:
+   pnpm agent <issueNumber>
+2. Run your code agent on files in `issues/<n>-<slug>/` (edit PLAN.md, implement code, update qa.md).
+3. Run `pnpm agent <n>` again to push changes, update PR, and sync feedback.
+4. When maintainers add `ready-to-merge`, the script posts cost summary, cleans up `issues/**`, and merges.
+
+See docs/CONTRIBUTING.md for details.
+
 ## Scripts
 
 | Command | Description |

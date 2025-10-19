@@ -9,3 +9,7 @@ The Single Source of Truth lives in `docs/`. Use the links below and avoid dupli
 - [API Skeleton](../docs/API/openapi.yaml)
 - [Glossary](../docs/GLOSSARY.md)
 - [Ground Rules](./RULES.md)
+
+## Agent Orchestration
+
+- [Run the Agent Locally](../docs/CONTRIBUTING.md#using-the-cli)
