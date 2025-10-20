@@ -393,10 +393,8 @@ async function handleBootstrap({
     logDry(`Would scaffold ${paths.costs}`);
   }
 
-  const taskCommitted =
-    wrote && (await commitIfChanged(paths.task, taskCommitMessage('bootstrap', issue.number), { dryRun }));
-  if (taskCommitted) {
-    await pushBranch(branch, { dryRun });
+  if (wrote) {
+    await commitIfChanged(paths.task, taskCommitMessage('bootstrap', issue.number), { dryRun });
   }
 
   if (!issue.labels?.some((label: any) => (label.name ?? label) === labels.ready)) {
@@ -470,18 +468,12 @@ async function handlePlanProposed({
     { dryRun },
   );
   if (wrote) {
-    const committed = await commitIfChanged(paths.task, taskCommitMessage('plan-proposed', issue.number), { dryRun });
-    if (committed) {
-      await pushBranch(branch, { dryRun });
-    }
+    await commitIfChanged(paths.task, taskCommitMessage('plan-proposed', issue.number), { dryRun });
   }
 
-  const planCommitted = await commitIfChanged(paths.plan, `docs: add PLAN for issue #${issue.number}`, {
+  await commitIfChanged(paths.plan, `docs: add PLAN for issue #${issue.number}`, {
     dryRun,
   });
-  if (planCommitted) {
-    await pushBranch(branch, { dryRun });
-  }
 
   await withDryRun(
     dryRun,
@@ -565,18 +557,14 @@ async function handleImplementation({
     logDry('Would scaffold qa.md');
   }
   if (qaCreated) {
-    const qaCommitted = await commitIfChanged(paths.qa, `docs: scaffold QA checklist for issue #${issue.number}`, {
+    await commitIfChanged(paths.qa, `docs: scaffold QA checklist for issue #${issue.number}`, {
       dryRun,
     });
-    if (qaCommitted) {
-      await pushBranch(branch, { dryRun });
-    }
     qaPresent = true;
   }
 
   const unpushed = await hasUnpushedCommits(branch);
   if (unpushed) {
-    await pushBranch(branch, { dryRun });
     if (prSummary.draft) {
       await withDryRun(dryRun, 'Mark PR ready for review', () =>
         markPrReadyForReview(octokit, repo, prSummary!.number),
@@ -636,10 +624,7 @@ async function handleImplementation({
     { dryRun },
   );
   if (wrote) {
-    const committed = await commitIfChanged(paths.task, taskCommitMessage('implementation', issue.number), { dryRun });
-    if (committed) {
-      await pushBranch(branch, { dryRun });
-    }
+    await commitIfChanged(paths.task, taskCommitMessage('implementation', issue.number), { dryRun });
   }
 
   return { prMetadata };
@@ -721,10 +706,7 @@ async function handleInReview({
     { dryRun },
   );
   if (wrote) {
-    const committed = await commitIfChanged(paths.task, taskCommitMessage('in-review', issue.number), { dryRun });
-    if (committed) {
-      await pushBranch(branch, { dryRun });
-    }
+    await commitIfChanged(paths.task, taskCommitMessage('in-review', issue.number), { dryRun });
   }
 
   if ((reviewComments.length || reviews.length) && prSummary) {
@@ -804,10 +786,7 @@ async function handleConflict({
     { dryRun },
   );
   if (wrote) {
-    const committed = await commitIfChanged(paths.task, taskCommitMessage('conflict', issue.number), { dryRun });
-    if (committed) {
-      await pushBranch(prSummary.headRef, { dryRun });
-    }
+    await commitIfChanged(paths.task, taskCommitMessage('conflict', issue.number), { dryRun });
   }
 }
 
@@ -887,10 +866,7 @@ async function handleReadyToMerge({
     { dryRun },
   );
   if (wrote) {
-    const committed = await commitIfChanged(paths.task, taskCommitMessage('ready-to-merge', issue.number), { dryRun });
-    if (committed) {
-      await pushBranch(branch, { dryRun });
-    }
+    await commitIfChanged(paths.task, taskCommitMessage('ready-to-merge', issue.number), { dryRun });
   }
 
   const totalLine = formatTotalLine(totals);
@@ -928,7 +904,6 @@ async function handleReadyToMerge({
   });
 
   await commitAll(`chore: cleanup ${issueDirRelative} before merge`, { dryRun });
-  await pushBranch(branch, { dryRun });
 
   await withDryRun(dryRun, 'Merge pull request', () =>
     mergePullRequest(octokit, repo, prSummary!.number, `chore: merge issue #${issue.number}`),
@@ -947,10 +922,6 @@ async function handleReadyToMerge({
   for (const label of labelsToRemove) {
     await withDryRun(dryRun, `Remove label ${label}`, () => removeIssueLabel(octokit, repo, issue.number, label));
   }
-}
-
-async function pushBranch(branch: string, options: { dryRun: boolean }) {
-  await withDryRun(options.dryRun, `Push branch ${branch}`, () => runGit(['push', '--set-upstream', 'origin', branch]));
 }
 
 async function commitIfChanged(filePath: string, message: string, options: { dryRun: boolean }): Promise<boolean> {
