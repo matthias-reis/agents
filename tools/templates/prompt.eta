@@ -1,0 +1,33 @@
+================================================================================
+🤖 AI AGENT TASK READY
+================================================================================
+
+Issue: #<%= it.issue.number %> - <%- it.issue.title %>
+State: <%- it.issue.state %>
+<% if (it.pr) { %>PR: #<%= it.pr.number %> (<%- it.pr.url %>)<% } %>
+
+📋 Your task is ready in: <%- it.paths.task %>
+
+<% if (it.flags.hasPlan) { %>📄 Plan available: <%- it.paths.plan %>
+<% } %><% if (it.flags.hasQa) { %>✅ QA checklist: <%- it.paths.qa %>
+<% } %>💰 Cost tracking: <%- it.paths.costs %>
+
+<% const contextLinks = (it.extras && it.extras.contextLinks) || []; %>
+<% if (contextLinks.length) { %>📚 Context links available: <%= contextLinks.length %> items
+<% } %>
+
+<% if (it.comments.length) { %>💬 Recent feedback: <%= it.comments.length %> comment(s)
+<% } %>
+
+<% const ciNotes = (it.extras && it.extras.ciNotes) || []; %>
+<% if (ciNotes.length) { %>🔴 CI issues to resolve: <%= ciNotes.length %> failure(s)
+<% } %>
+
+Next steps:
+1. Review the task file: <%- it.paths.task %>
+<% if (it.flags.hasPlan) { %>2. Check the implementation plan: <%- it.paths.plan %>
+<% } else { %>2. Create implementation plan: <%- it.paths.plan %>
+<% } %>3. Track costs in: <%- it.paths.costs %>
+4. Complete the work and update status
+
+================================================================================

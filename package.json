@@ -13,7 +13,8 @@
     "format:write": "pnpm --dir web format:write",
     "typecheck": "pnpm --dir web typecheck",
     "test": "pnpm --dir web test",
-    "agent": "esrun tools/agent.ts"
+    "agent": "esrun tools/agent.ts",
+    "aio": "esrun tools/agent.ts"
   },
   "engines": {
     "node": ">=20"

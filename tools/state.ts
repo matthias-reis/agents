@@ -49,8 +49,8 @@ export function determineState(ctx: StateContext): StateResult {
     return { state: 'implementation', reason: `Label ${ctx.planApprovedLabel} present` };
   }
 
-  if (ctx.hasPlan) {
-    return { state: 'plan-proposed', reason: 'PLAN.md exists but not approved' };
+  if (ctx.labels.has(ctx.planProposedLabel)) {
+    return { state: 'plan-proposed', reason: `Label ${ctx.planProposedLabel} present` };
   }
 
   if (ctx.labels.has(ctx.readyForAgentLabel)) {

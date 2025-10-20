@@ -1,0 +1,25 @@
+================================================================================
+🎉 TASK COMPLETED SUCCESSFULLY!
+================================================================================
+
+Issue: #<%= it.issue.number %> - <%- it.issue.title %>
+<% if (it.pr) { %>PR: #<%= it.pr.number %> (<%- it.pr.url %>)<% } %>
+
+✅ QA Checklist has been posted and reviewed
+<% const qaContent = (it.extras && it.extras.qaContent) || 'QA content not available'; %>
+
+📋 QA Summary:
+<%- qaContent %>
+
+<% const costSummary = (it.extras && it.extras.costSummary) || {}; %>
+<% if (costSummary.totalTokens) { %>💰 Total Cost:
+- Tokens: <%= costSummary.totalTokens %>
+- USD: $<%= costSummary.totalUSD %>
+<% } %>
+
+🎯 Task Status: Ready for review and potential merge
+
+The work has been completed and is ready for final review by maintainers.
+All CI checks should be passing and QA requirements met.
+
+================================================================================

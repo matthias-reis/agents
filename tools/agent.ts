@@ -331,6 +331,22 @@ async function main() {
         logInfo('No actionable state; exiting.');
         break;
     }
+
+    // Output prompt template to command line for user guidance
+    await outputPromptToConsole(stateResult.state, {
+      issue,
+      issueLabels: Array.from(issueLabels),
+      paths,
+      prSummary,
+      prMetadata,
+      comments: issueComments,
+      hasTask: options.dryRun ? hasTask : true,
+      hasPlan,
+      hasQa,
+      hasConflicts,
+      dryRun: options.dryRun,
+      extras: { contextLinks },
+    });
   } finally {
     if (lockApplied) {
       if (!options.dryRun) {
@@ -388,18 +404,53 @@ async function handleBootstrap({
   );
 
   if (!dryRun && needsCostsLedger) {
-    await ensureCostsLedger(paths.costs);
+    // Create cost.md using template
+    const costContent = await renderStateTemplate('cost', {
+      issue: {
+        number: issue.number,
+        title: issue.title ?? 'Untitled Issue',
+        url: issue?.html_url ?? issue?.url ?? '',
+        state: issue?.state ?? 'unknown',
+        body: issue?.body ?? '',
+        bodySnippet: '',
+      },
+      labels: issueLabels,
+      comments: [],
+      paths: {
+        root: paths.root,
+        task: paths.task,
+        plan: paths.plan,
+        qa: paths.qa,
+        pr: paths.pr,
+        costs: paths.costs,
+      },
+      flags: {
+        hasTask: templateHasTask,
+        hasPlan,
+        hasQa,
+        hasConflicts,
+        hasPr: Boolean(prSummary),
+        dryRun,
+      },
+      extras: { contextLinks },
+    });
+    await fs.writeFile(paths.costs, costContent, 'utf8');
   } else if (dryRun && needsCostsLedger) {
-    logDry(`Would scaffold ${paths.costs}`);
+    logDry(`Would create ${paths.costs} using cost template`);
   }
 
   if (wrote) {
     await commitIfChanged(paths.task, taskCommitMessage('bootstrap', issue.number), { dryRun });
   }
 
-  if (!issue.labels?.some((label: any) => (label.name ?? label) === labels.ready)) {
-    logInfo(`Issue #${issue.number} missing ${labels.ready}; ensure maintainers add it when ready.`);
-  }
+  // Remove ready-for-agent label and add plan-proposed and locked labels
+  await withDryRun(dryRun, `Remove label ${labels.ready}`, () =>
+    removeIssueLabel(octokit, repo, issue.number, labels.ready)
+  );
+  
+  await withDryRun(dryRun, `Add labels ${labels.planProposed} and ${labels.lock}`, () =>
+    addIssueLabels(octokit, repo, issue.number, [labels.planProposed, labels.lock])
+  );
 
   logInfo(`Bootstrap complete. Open ${paths.task} and prepare PLAN.md.`);
 }
@@ -448,8 +499,9 @@ async function handlePlanProposed({
   const newComments = filterCommentsSince(issueComments, prMetadata?.lastIssueSyncAt);
 
   const templateHasTask = dryRun ? hasTask : true;
+  const templateName = newComments.length > 0 ? 'plan-feedback' : 'plan-proposed';
   const wrote = await writeTaskFromTemplate(
-    'plan-proposed',
+    templateName,
     {
       issue,
       issueLabels,
@@ -548,6 +600,15 @@ async function handleImplementation({
 
   const branch = prSummary.headRef;
   await ensureGitBranch(branch, prSummary.baseRef, { dryRun });
+
+  // Remove plan-approved label and add in-review and locked labels
+  await withDryRun(dryRun, `Remove label ${labels.planApproved}`, () =>
+    removeIssueLabel(octokit, repo, issue.number, labels.planApproved)
+  );
+  
+  await withDryRun(dryRun, `Add labels ${labels.inReview} and ${labels.lock}`, () =>
+    addIssueLabels(octokit, repo, issue.number, [labels.inReview, labels.lock])
+  );
 
   let qaCreated = false;
   let qaPresent = hasQa;
@@ -686,8 +747,13 @@ async function handleInReview({
   const ciNotes = await collectCiFailures(octokit, repo, prSummary);
   const combinedComments = [...issueComments, ...reviewComments, ...reviews];
   const templateHasTask = dryRun ? hasTask : true;
+  
+  // Check if we should use ci-failed template or proceed with QA
+  const hasCiFailures = ciNotes.length > 0;
+  const templateName = hasCiFailures ? 'ci-failed' : 'in-review';
+  
   const wrote = await writeTaskFromTemplate(
-    'in-review',
+    templateName,
     {
       issue,
       issueLabels,
@@ -707,6 +773,22 @@ async function handleInReview({
   );
   if (wrote) {
     await commitIfChanged(paths.task, taskCommitMessage('in-review', issue.number), { dryRun });
+  }
+
+  // If QA is available and no CI failures, post QA content and remove lock
+  if (hasQa && !hasCiFailures) {
+    const qaContent = await readFileIfExists(paths.qa);
+    if (qaContent) {
+      await withDryRun(dryRun, 'Post QA checklist content as issue comment', () =>
+        postIssueComment(octokit, repo, issue.number, qaContent.trim())
+      );
+      
+      // Remove "locked" label  
+      const labels = getLabelConfig(process.env);
+      await withDryRun(dryRun, `Remove label ${labels.lock}`, () =>
+        removeIssueLabel(octokit, repo, issue.number, labels.lock)
+      );
+    }
   }
 
   if ((reviewComments.length || reviews.length) && prSummary) {
@@ -1334,7 +1416,7 @@ function parseArgs(argv: string[]): { issueNumber: number; options: CliOptions }
 }
 
 function usage(): never {
-  console.error('Usage: pnpm agent <issueNumber> [--base <branch>] [--dry-run] [--verbose]');
+  console.error('Usage: pnpm aio <issueNumber> [--base <branch>] [--dry-run] [--verbose]');
   process.exit(1);
 }
 
@@ -1363,6 +1445,42 @@ function logWarn(message: string) {
 
 function logDry(message: string) {
   console.log(`[agent:dry] ${message}`);
+}
+
+async function outputPromptToConsole(state: string, params: StateLogParams) {
+  if (state === 'ready-to-merge') {
+    console.log('\n🎉 You successfully completed this task! Congrats!');
+    return;
+  }
+
+  // Special case for in-review with QA and no CI failures
+  if (state === 'in-review' && params.hasQa) {
+    const ciNotes = (params.extras?.ciNotes as string[]) || [];
+    if (ciNotes.length === 0) {
+      try {
+        const qaContent = await readFileIfExists(params.paths.qa);
+        if (qaContent) {
+          const model = buildStateTemplateModel({
+            ...params,
+            extras: { ...params.extras, qaContent: qaContent.trim() }
+          });
+          const qaPrompt = await renderStateTemplate('qa', model);
+          console.log('\n' + qaPrompt);
+          return;
+        }
+      } catch (error: any) {
+        logWarn(`Failed to render QA template: ${error?.message ?? error}`);
+      }
+    }
+  }
+
+  try {
+    const model = buildStateTemplateModel(params);
+    const prompt = await renderStateTemplate('prompt', model);
+    console.log('\n' + prompt);
+  } catch (error: any) {
+    logWarn(`Failed to render prompt template: ${error?.message ?? error}`);
+  }
 }
 
 main().catch((error) => {

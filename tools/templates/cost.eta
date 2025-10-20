@@ -1,0 +1,19 @@
+# Cost Tracking
+
+Issue: [#<%= it.issue.number %>](<%- it.issue.url %>) — <%- it.issue.title %>
+
+## Instructions
+
+Append each AI interaction to this file in the following format:
+```
+YYYY-MM-DDTHH:mm:ss.sssZ,provider,model,input_tokens,output_tokens,total_tokens,estUSD,headers_snapshot
+```
+
+Example:
+```
+2024-01-15T14:30:45.123Z,anthropic,claude-3-sonnet,1500,800,2300,0.0345,"remaining: 1000, reset: 3600"
+```
+
+## Cost Entries
+
+<!-- Add your cost entries below this line -->

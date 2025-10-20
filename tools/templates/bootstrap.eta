@@ -1,10 +1,21 @@
-## Bootstrap Overview
+# Current Task: Create Plan
 
 - Issue: [#<%= it.issue.number %>](<%- it.issue.url %>) — <%- it.issue.title %>
 - State: <%- it.issue.state %>
-- Labels: <%= it.labels.length ? it.labels.join(', ') : '—' %>
 
-### Issue Summary
+## Task description
+
+- Read the **Issue Summary** below and produce a detailed implementation plan .
+- Write a single Markdown file: `<%- it.paths.plan %>`.
+- Include: Summary, Scope, Out-of-scope, File/dir map, Acceptance Criteria, Test Plan, Risks, Rollback, CI updates, Docs updates.
+- Link to SoT docs instead of copying content.
+- In case of architectural changes or added dependencies, consider an addition to the ADR and mention it in the PLAN.md Docs update section
+- Append a line to `<%- it.paths.costs %>` with:
+  - timestamp (UTC), provider, model, input_tokens, output_tokens, total_tokens, estUSD, headers snapshot (remaining/reset if available).
+- Do **not** modify other files.
+
+
+## Issue Summary
 
 <% if (it.issue.bodySnippet) { %>
 <%- it.issue.bodySnippet %>
@@ -12,7 +23,9 @@
 _No issue body provided._
 <% } %>
 
-### Recent Comments
+Labels: <%= it.labels.length ? it.labels.join(', ') : '—' %>
+
+## Recent Feedback
 
 <% if (it.comments.length) { %>
 <% it.comments.forEach(function(comment) { %>
@@ -22,22 +35,6 @@ _No issue body provided._
 - _No comments captured for this state._
 <% } %>
 
-### Workspace Flags
-
-- Task file present: <%= it.flags.hasTask ? 'yes' : 'no' %>
-- Plan file present: <%= it.flags.hasPlan ? 'yes' : 'no' %>
-- QA notes present: <%= it.flags.hasQa ? 'yes' : 'no' %>
-- PR detected: <%= it.flags.hasPr ? 'yes' : 'no' %>
-- Merge conflicts: <%= it.flags.hasConflicts ? 'yes' : 'no' %>
-- Dry run: <%= it.flags.dryRun ? 'yes' : 'no' %>
-
-### Workspace Paths
-
-- Task: <%- it.paths.task %>
-- Plan: <%- it.paths.plan %>
-- QA: <%- it.paths.qa %>
-- Costs: <%- it.paths.costs %>
-- PR metadata: <%- it.paths.pr %>
 
 ### Context Links
 
@@ -49,3 +46,12 @@ _No issue body provided._
 <% } else { %>
 - _No context links discovered._
 <% } %>
+
+
+## Workspace Paths
+
+- Task: <%- it.paths.task %>
+- Plan: <%- it.paths.plan %>
+- QA: <%- it.paths.qa %>
+- Costs: <%- it.paths.costs %>
+- PR metadata: <%- it.paths.pr %>
