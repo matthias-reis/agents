@@ -137,15 +137,6 @@ async function main() {
   const hasCosts = Boolean(existingCosts);
   const needsTask = !hasTask;
   const needsCostsLedger = !hasCosts;
-
-  const issueSnapshot = {
-    number: issue.number,
-    title: issue.title ?? 'Untitled Issue',
-    body: issue.body ?? '',
-    state: issue.state,
-    url: issue.html_url,
-    labels: Array.from(issueLabels),
-  };
   let contextLinks: string[] = [];
 
   if (!options.dryRun) {
@@ -186,13 +177,6 @@ async function main() {
 
   logInfo(`State machine selected "${stateResult.state}" (${stateResult.reason}).`);
 
-  if (!options.dryRun && needsTask && stateResult.state !== 'bootstrap') {
-    const created = await ensureTaskFile(paths, issueSnapshot, { contextLinks });
-    if (created) {
-      hasTask = true;
-    }
-  }
-
   if (!options.dryRun && needsCostsLedger && stateResult.state !== 'bootstrap') {
     await ensureCostsLedger(paths.costs);
   }
@@ -226,7 +210,6 @@ async function main() {
           hasConflicts,
           prSummary,
           prMetadata,
-          issueSnapshot,
           contextLinks,
           needsTask,
           needsCostsLedger,
@@ -368,30 +351,32 @@ async function handleBootstrap({
   hasConflicts,
   prSummary,
   prMetadata,
-  issueSnapshot,
   contextLinks,
   needsTask,
   needsCostsLedger,
 }: any) {
-  await logStateSummary('bootstrap', {
+  const branch = branchName(issue.number, slug);
+  await ensureGitBranch(branch, baseRef, { dryRun });
+
+  const finalHasTask = hasTask || (!dryRun && needsTask);
+  const summary = await renderStateSummary('bootstrap', {
     issue,
     issueLabels,
     paths,
     prSummary,
     prMetadata,
     comments: issueComments,
-    hasTask,
+    hasTask: finalHasTask,
     hasPlan,
     hasQa,
     hasConflicts,
     dryRun,
+    extras: { contextLinks },
   });
-
-  const branch = branchName(issue.number, slug);
-  await ensureGitBranch(branch, baseRef, { dryRun });
+  logInfo(summary.trimEnd());
 
   if (!dryRun && needsTask) {
-    await ensureTaskFile(paths, issueSnapshot, { contextLinks });
+    await ensureTaskFile(paths, summary);
   } else if (dryRun && needsTask) {
     logDry(`Would create ${paths.task} via template`);
   }
@@ -1091,14 +1076,20 @@ type StateLogParams = {
 
 const MAX_TEMPLATE_COMMENTS = 10;
 
-async function logStateSummary(state: string, params: StateLogParams): Promise<void> {
+async function logStateSummary(state: string, params: StateLogParams): Promise<string | null> {
   try {
-    const model = buildStateTemplateModel(params);
-    const rendered = await renderStateTemplate(state, model);
+    const rendered = await renderStateSummary(state, params);
     logInfo(rendered.trimEnd());
+    return rendered;
   } catch (error: any) {
     logWarn(`Failed to render template for state "${state}": ${error.message ?? error}`);
+    return null;
   }
+}
+
+async function renderStateSummary(state: string, params: StateLogParams): Promise<string> {
+  const model = buildStateTemplateModel(params);
+  return await renderStateTemplate(state, model);
 }
 
 function buildStateTemplateModel(params: StateLogParams): StateTemplateModel {

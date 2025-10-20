@@ -1,17 +1,10 @@
-# Current Task: Resolve Conflicts
+## Conflict Detected
 
 - Issue: [#<%= it.issue.number %>](<%- it.issue.url %>) — <%- it.issue.title %>
-- State: <%- it.issue.state %>
-
-## Task Description
-
-- Resolve Git merge conflicts locally and update the branch.
-- Append a line to `<%- it.paths.costs %>` with:
-  - timestamp (UTC), provider, model, input_tokens, output_tokens, total_tokens, estUSD, headers snapshot (remaining/reset if available).
-
-## Context
-
 - Labels: <%= it.labels.length ? it.labels.join(', ') : '—' %>
+
+### Pull Request
+
 <% if (it.pr) { %>
 - PR: [#<%= it.pr.number %>](<%- it.pr.url %>)
 - Branch: <%- it.pr.headRef %> → <%- it.pr.baseRef %>

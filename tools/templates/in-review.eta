@@ -1,0 +1,45 @@
+## In-Review Summary
+
+- Issue: [#<%= it.issue.number %>](<%- it.issue.url %>) — <%- it.issue.title %>
+- Labels: <%= it.labels.length ? it.labels.join(', ') : '—' %>
+
+### Pull Request Status
+
+<% if (it.pr) { %>
+- PR: [#<%= it.pr.number %>](<%- it.pr.url %>)
+- Draft: <%= it.pr.isDraft ? 'yes' : 'no' %>
+- Branch: <%- it.pr.headRef %> → <%- it.pr.baseRef %>
+- Commits: <%= typeof it.pr.commits === 'number' ? it.pr.commits : 'unknown' %>
+- Mergeable: <%- it.pr.mergeableState || 'unknown' %>
+<% } else { %>
+- _No associated pull request._
+<% } %>
+
+### Review Activity
+
+<% if (it.comments.length) { %>
+<% it.comments.forEach(function(comment) { %>
+- <%- comment.updatedAt %> — [<%- comment.author %>](<%- comment.url %>): <%- comment.bodySnippet %>
+<% }); %>
+<% } else { %>
+- _No review feedback captured._
+<% } %>
+
+### Sync Metadata
+
+<% if (it.metadata) { %>
+- Last review sync: <%- it.metadata.lastReviewSyncAt || 'never' %>
+- Last issue sync: <%- it.metadata.lastIssueSyncAt || 'never' %>
+- Last CI sync: <%- it.metadata.lastCiSyncAt || 'never' %>
+- QA comment: <%- it.metadata.qaCommentUrl || 'not posted' %>
+<% } else { %>
+- _No metadata recorded._
+<% } %>
+
+### Workspace Flags
+
+- Task file present: <%= it.flags.hasTask ? 'yes' : 'no' %>
+- Plan file present: <%= it.flags.hasPlan ? 'yes' : 'no' %>
+- QA notes present: <%= it.flags.hasQa ? 'yes' : 'no' %>
+- Merge conflicts: <%= it.flags.hasConflicts ? 'yes' : 'no' %>
+- Dry run: <%= it.flags.dryRun ? 'yes' : 'no' %>

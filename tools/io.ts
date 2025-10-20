@@ -1,6 +1,5 @@
 import { promises as fs } from 'fs';
 import path from 'path';
-import { renderTaskTemplate, TaskTemplateIssue } from './templates.js';
 
 export interface IssuePaths {
   root: string;
@@ -9,19 +8,6 @@ export interface IssuePaths {
   qa: string;
   pr: string;
   costs: string;
-}
-
-export interface IssueSnapshot {
-  number: number;
-  title: string;
-  body?: string | null;
-  url: string;
-  state: string;
-  labels: string[];
-}
-
-export interface TaskTemplateOptions {
-  contextLinks?: string[];
 }
 
 export interface AppendOptions {
@@ -94,23 +80,7 @@ export async function writeJsonFile(filePath: string, data: unknown): Promise<vo
   await fs.writeFile(filePath, JSON.stringify(data, null, 2) + '\n', 'utf8');
 }
 
-export async function ensureTaskFile(
-  paths: IssuePaths,
-  issue: IssueSnapshot,
-  options: TaskTemplateOptions = {},
-): Promise<boolean> {
-  const taskIssue: TaskTemplateIssue = {
-    number: issue.number,
-    title: issue.title,
-    state: issue.state,
-    url: issue.url,
-    labels: issue.labels,
-    body: issue.body ?? '',
-  };
-  const content = await renderTaskTemplate({
-    issue: taskIssue,
-    contextLinks: options.contextLinks ?? [],
-  });
+export async function ensureTaskFile(paths: IssuePaths, content: string): Promise<boolean> {
   return writeFileIfChanged(paths.task, content);
 }
 

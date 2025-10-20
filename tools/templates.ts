@@ -1,39 +1,15 @@
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { existsSync } from 'fs';
 import { Eta } from 'eta';
 
 const moduleDir = path.dirname(fileURLToPath(import.meta.url));
-const candidateRoots = [
-  path.resolve(moduleDir, '..', 'templates'),
-  path.resolve(process.cwd(), 'templates'),
-];
-const templatesRoot = candidateRoots.find((dir) => existsSync(dir)) ?? candidateRoots[0];
+const templatesRoot = path.resolve(moduleDir, 'templates');
 
 const renderer = new Eta({
   views: templatesRoot,
   cache: true,
   async: true,
 });
-
-export interface TaskTemplateIssue {
-  number: number;
-  title: string;
-  state: string;
-  url: string;
-  labels: string[];
-  body: string;
-}
-
-export interface TaskTemplateModel {
-  issue: TaskTemplateIssue;
-  contextLinks: string[];
-}
-
-export async function renderTaskTemplate(model: TaskTemplateModel): Promise<string> {
-  const output = await renderTemplate('task', model);
-  return output;
-}
 
 export interface TemplateIssue {
   number: number;
@@ -106,8 +82,7 @@ export interface StateTemplateModel {
 }
 
 export async function renderStateTemplate(state: string, model: StateTemplateModel): Promise<string> {
-  const templateName = `states/${state}`;
-  const output = await renderTemplate(templateName, model);
+  const output = await renderTemplate(state, model);
   return output;
 }
 
