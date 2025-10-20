@@ -1,9 +1,14 @@
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { existsSync } from 'fs';
 import { Eta } from 'eta';
 
 const moduleDir = path.dirname(fileURLToPath(import.meta.url));
-const templatesRoot = path.resolve(moduleDir, '..', 'templates');
+const candidateRoots = [
+  path.resolve(moduleDir, '..', 'templates'),
+  path.resolve(process.cwd(), 'templates'),
+];
+const templatesRoot = candidateRoots.find((dir) => existsSync(dir)) ?? candidateRoots[0];
 
 const renderer = new Eta({
   views: templatesRoot,
