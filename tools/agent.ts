@@ -261,7 +261,6 @@ async function main() {
           octokit,
           paths,
           dryRun: options.dryRun,
-          labels,
           prMetadata,
           prSummary,
           issueComments,
@@ -310,7 +309,7 @@ async function main() {
         break;
       case 'idle':
       default:
-        await renderAndWriteTaskTemplate(
+        await writeTaskFromTemplate(
           'idle',
           {
             issue,
@@ -327,7 +326,7 @@ async function main() {
             extras: { contextLinks },
           },
           paths,
-          { dryRun: options.dryRun, writeTask: true },
+          { dryRun: options.dryRun },
         );
         logInfo('No actionable state; exiting.');
         break;
@@ -367,8 +366,8 @@ async function handleBootstrap({
   const branch = branchName(issue.number, slug);
   await ensureGitBranch(branch, baseRef, { dryRun });
 
-  const finalHasTask = dryRun ? hasTask : true;
-  const { wrote } = await renderAndWriteTaskTemplate(
+  const templateHasTask = dryRun ? hasTask : true;
+  const wrote = await writeTaskFromTemplate(
     'bootstrap',
     {
       issue,
@@ -377,7 +376,7 @@ async function handleBootstrap({
       prSummary,
       prMetadata,
       comments: issueComments,
-      hasTask: finalHasTask,
+      hasTask: templateHasTask,
       hasPlan,
       hasQa,
       hasConflicts,
@@ -385,7 +384,7 @@ async function handleBootstrap({
       extras: { contextLinks },
     },
     paths,
-    { dryRun, writeTask: true },
+    { dryRun },
   );
 
   if (!dryRun && needsCostsLedger) {
@@ -450,7 +449,8 @@ async function handlePlanProposed({
 
   const newComments = filterCommentsSince(issueComments, prMetadata?.lastIssueSyncAt);
 
-  const { wrote } = await renderAndWriteTaskTemplate(
+  const templateHasTask = dryRun ? hasTask : true;
+  const wrote = await writeTaskFromTemplate(
     'plan-proposed',
     {
       issue,
@@ -459,7 +459,7 @@ async function handlePlanProposed({
       prSummary,
       prMetadata,
       comments: newComments,
-      hasTask: dryRun ? hasTask : true,
+      hasTask: templateHasTask,
       hasPlan,
       hasQa,
       hasConflicts,
@@ -467,7 +467,7 @@ async function handlePlanProposed({
       extras: { contextLinks },
     },
     paths,
-    { dryRun, writeTask: true },
+    { dryRun },
   );
   if (wrote) {
     const committed = await commitIfChanged(paths.task, taskCommitMessage('plan-proposed', issue.number), { dryRun });
@@ -530,7 +530,8 @@ async function handleImplementation({
     prSummary = await safeGetPull(octokit, repo, prMetadata.number);
   }
   if (!prSummary) {
-    await renderAndWriteTaskTemplate(
+    const templateHasTask = dryRun ? hasTask : true;
+    await writeTaskFromTemplate(
       'implementation',
       {
         issue,
@@ -539,7 +540,7 @@ async function handleImplementation({
         prSummary: null,
         prMetadata,
         comments: issueComments,
-        hasTask: dryRun ? hasTask : true,
+        hasTask: templateHasTask,
         hasPlan,
         hasQa,
         hasConflicts,
@@ -547,7 +548,7 @@ async function handleImplementation({
         extras: { contextLinks },
       },
       paths,
-      { dryRun, writeTask: true },
+      { dryRun },
     );
     logInfo('No PR found; implementation stage requires a PR. Skipping.');
     return { prMetadata, prSummary };
@@ -610,7 +611,8 @@ async function handleImplementation({
   }
 
   const ciNotes = await collectCiFailures(octokit, repo, prSummary);
-  const { wrote } = await renderAndWriteTaskTemplate(
+  const templateHasTask = dryRun ? hasTask : true;
+  const wrote = await writeTaskFromTemplate(
     'implementation',
     {
       issue,
@@ -619,7 +621,7 @@ async function handleImplementation({
       prSummary,
       prMetadata,
       comments: issueComments,
-      hasTask: dryRun ? hasTask : true,
+      hasTask: templateHasTask,
       hasPlan,
       hasQa: qaPresent,
       hasConflicts,
@@ -631,7 +633,7 @@ async function handleImplementation({
       },
     },
     paths,
-    { dryRun, writeTask: true },
+    { dryRun },
   );
   if (wrote) {
     const committed = await commitIfChanged(paths.task, taskCommitMessage('implementation', issue.number), { dryRun });
@@ -663,7 +665,8 @@ async function handleInReview({
     prSummary = await safeGetPull(octokit, repo, prMetadata.number);
   }
   if (!prSummary) {
-    await renderAndWriteTaskTemplate(
+    const templateHasTask = dryRun ? hasTask : true;
+    await writeTaskFromTemplate(
       'in-review',
       {
         issue,
@@ -672,7 +675,7 @@ async function handleInReview({
         prSummary: null,
         prMetadata,
         comments: issueComments,
-        hasTask: dryRun ? hasTask : true,
+        hasTask: templateHasTask,
         hasPlan,
         hasQa,
         hasConflicts,
@@ -680,7 +683,7 @@ async function handleInReview({
         extras: { contextLinks },
       },
       paths,
-      { dryRun, writeTask: true },
+      { dryRun },
     );
     logInfo('PR not found; cannot sync review feedback.');
     return { prMetadata };
@@ -697,7 +700,8 @@ async function handleInReview({
   });
   const ciNotes = await collectCiFailures(octokit, repo, prSummary);
   const combinedComments = [...issueComments, ...reviewComments, ...reviews];
-  const { wrote } = await renderAndWriteTaskTemplate(
+  const templateHasTask = dryRun ? hasTask : true;
+  const wrote = await writeTaskFromTemplate(
     'in-review',
     {
       issue,
@@ -706,7 +710,7 @@ async function handleInReview({
       prSummary,
       prMetadata,
       comments: combinedComments,
-      hasTask: dryRun ? hasTask : true,
+      hasTask: templateHasTask,
       hasPlan,
       hasQa,
       hasConflicts,
@@ -714,7 +718,7 @@ async function handleInReview({
       extras: { ciNotes, contextLinks },
     },
     paths,
-    { dryRun, writeTask: true },
+    { dryRun },
   );
   if (wrote) {
     const committed = await commitIfChanged(paths.task, taskCommitMessage('in-review', issue.number), { dryRun });
@@ -754,7 +758,8 @@ async function handleConflict({
   contextLinks,
 }: any) {
   if (!prSummary) {
-    await renderAndWriteTaskTemplate(
+    const templateHasTask = dryRun ? hasTask : true;
+    await writeTaskFromTemplate(
       'conflict',
       {
         issue,
@@ -763,7 +768,7 @@ async function handleConflict({
         prSummary: null,
         prMetadata,
         comments: issueComments,
-        hasTask: dryRun ? hasTask : true,
+        hasTask: templateHasTask,
         hasPlan,
         hasQa,
         hasConflicts,
@@ -771,7 +776,7 @@ async function handleConflict({
         extras: { contextLinks },
       },
       paths,
-      { dryRun, writeTask: true },
+      { dryRun },
     );
     logInfo('Conflict stage reached but PR missing; nothing to record.');
     return;
@@ -779,7 +784,7 @@ async function handleConflict({
 
   await ensureGitBranch(prSummary.headRef, prSummary.baseRef, { dryRun });
 
-  const { wrote } = await renderAndWriteTaskTemplate(
+  const wrote = await writeTaskFromTemplate(
     'conflict',
     {
       issue,
@@ -796,7 +801,7 @@ async function handleConflict({
       extras: { contextLinks },
     },
     paths,
-    { dryRun, writeTask: true },
+    { dryRun },
   );
   if (wrote) {
     const committed = await commitIfChanged(paths.task, taskCommitMessage('conflict', issue.number), { dryRun });
@@ -821,12 +826,14 @@ async function handleReadyToMerge({
   hasPlan,
   hasQa,
   hasConflicts,
+  contextLinks,
 }: any) {
   if (!prSummary && prMetadata) {
     prSummary = await safeGetPull(octokit, repo, prMetadata.number);
   }
   if (!prSummary) {
-    await renderAndWriteTaskTemplate(
+    const templateHasTask = dryRun ? hasTask : true;
+    await writeTaskFromTemplate(
       'ready-to-merge',
       {
         issue,
@@ -835,7 +842,7 @@ async function handleReadyToMerge({
         prSummary: null,
         prMetadata,
         comments: issueComments,
-        hasTask,
+        hasTask: templateHasTask,
         hasPlan,
         hasQa,
         hasConflicts,
@@ -843,7 +850,7 @@ async function handleReadyToMerge({
         extras: { contextLinks },
       },
       paths,
-      { dryRun, writeTask: true },
+      { dryRun },
     );
     logInfo('Ready-to-merge stage reached but PR missing.');
     return;
@@ -859,7 +866,8 @@ async function handleReadyToMerge({
     totalUSD: totals.totalUSD.toFixed(2),
   };
 
-  const { wrote } = await renderAndWriteTaskTemplate(
+  const templateHasTask = dryRun ? hasTask : true;
+  const wrote = await writeTaskFromTemplate(
     'ready-to-merge',
     {
       issue,
@@ -868,7 +876,7 @@ async function handleReadyToMerge({
       prSummary,
       prMetadata,
       comments: issueComments,
-      hasTask: dryRun ? hasTask : true,
+      hasTask: templateHasTask,
       hasPlan,
       hasQa,
       hasConflicts,
@@ -876,7 +884,7 @@ async function handleReadyToMerge({
       extras: { costSummary, contextLinks },
     },
     paths,
-    { dryRun, writeTask: true },
+    { dryRun },
   );
   if (wrote) {
     const committed = await commitIfChanged(paths.task, taskCommitMessage('ready-to-merge', issue.number), { dryRun });
@@ -1134,40 +1142,33 @@ type StateLogParams = {
 
 const MAX_TEMPLATE_COMMENTS = 10;
 
-async function renderStateSummary(state: string, params: StateLogParams): Promise<string> {
-  const model = buildStateTemplateModel(params);
-  return await renderStateTemplate(state, model);
-}
-
 interface RenderOptions {
   dryRun: boolean;
-  writeTask?: boolean;
 }
 
-async function renderAndWriteTaskTemplate(
+async function writeTaskFromTemplate(
   state: string,
   params: StateLogParams,
   paths: IssuePaths,
   options: RenderOptions,
-): Promise<{ summary: string; wrote: boolean }> {
+): Promise<boolean> {
   try {
-    const summary = await renderStateSummary(state, params);
-    logInfo(summary.trimEnd());
+    const model = buildStateTemplateModel(params);
+    const content = await renderStateTemplate(state, model);
 
-    let wrote = false;
-    const shouldWrite = options.writeTask ?? true;
-    if (shouldWrite) {
-      if (options.dryRun) {
-        logDry(`Would update ${paths.task} from "${state}" template`);
-      } else {
-        wrote = await ensureTaskFile(paths, summary);
-      }
+    if (options.dryRun) {
+      logDry(`Would write ${paths.task} using "${state}" template`);
+      return false;
     }
 
-    return { summary, wrote };
+    const wrote = await ensureTaskFile(paths, content);
+    if (wrote) {
+      logInfo(`Updated ${paths.task} using "${state}" template.`);
+    }
+    return wrote;
   } catch (error: any) {
     logWarn(`Failed to render template for state "${state}": ${error?.message ?? error}`);
-    return { summary: '', wrote: false };
+    return false;
   }
 }
 
