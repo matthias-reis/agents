@@ -130,29 +130,27 @@ async function main() {
   const paths = getIssuePaths(workspaceRoot, issue.number, slug);
 
   const existingTask = await readFileIfExists(paths.task);
+  const existingCosts = await readFileIfExists(paths.costs);
   const hasPlan = Boolean(await readFileIfExists(paths.plan));
   const hasQa = Boolean(await readFileIfExists(paths.qa));
   let hasTask = Boolean(existingTask);
+  const hasCosts = Boolean(existingCosts);
+  const needsTask = !hasTask;
+  const needsCostsLedger = !hasCosts;
+
+  const issueSnapshot = {
+    number: issue.number,
+    title: issue.title ?? 'Untitled Issue',
+    body: issue.body ?? '',
+    state: issue.state,
+    url: issue.html_url,
+    labels: Array.from(issueLabels),
+  };
+  let contextLinks: string[] = [];
 
   if (!options.dryRun) {
     await ensureIssueDirectory(paths);
-    await ensureCostsLedger(paths.costs);
-    if (!hasTask) {
-      const contextLinks = await collectContextRegistryLinks('.context/CONTEXT_REGISTRY.yaml', workspaceRoot);
-      await ensureTaskFile(
-        paths,
-        {
-          number: issue.number,
-          title: issue.title ?? 'Untitled Issue',
-          body: issue.body ?? '',
-          state: issue.state,
-          url: issue.html_url,
-          labels: Array.from(issueLabels),
-        },
-        { contextLinks },
-      );
-      hasTask = true;
-    }
+    contextLinks = await collectContextRegistryLinks('.context/CONTEXT_REGISTRY.yaml', workspaceRoot);
   } else {
     logDry(`Would ensure workspace at ${paths.root}`);
   }
@@ -188,6 +186,17 @@ async function main() {
 
   logInfo(`State machine selected "${stateResult.state}" (${stateResult.reason}).`);
 
+  if (!options.dryRun && needsTask && stateResult.state !== 'bootstrap') {
+    const created = await ensureTaskFile(paths, issueSnapshot, { contextLinks });
+    if (created) {
+      hasTask = true;
+    }
+  }
+
+  if (!options.dryRun && needsCostsLedger && stateResult.state !== 'bootstrap') {
+    await ensureCostsLedger(paths.costs);
+  }
+
   let lockApplied = false;
 
   try {
@@ -217,6 +226,10 @@ async function main() {
           hasConflicts,
           prSummary,
           prMetadata,
+          issueSnapshot,
+          contextLinks,
+          needsTask,
+          needsCostsLedger,
         });
         break;
       case 'plan-proposed':
@@ -355,6 +368,10 @@ async function handleBootstrap({
   hasConflicts,
   prSummary,
   prMetadata,
+  issueSnapshot,
+  contextLinks,
+  needsTask,
+  needsCostsLedger,
 }: any) {
   await logStateSummary('bootstrap', {
     issue,
@@ -372,6 +389,19 @@ async function handleBootstrap({
 
   const branch = branchName(issue.number, slug);
   await ensureGitBranch(branch, baseRef, { dryRun });
+
+  if (!dryRun && needsTask) {
+    await ensureTaskFile(paths, issueSnapshot, { contextLinks });
+  } else if (dryRun && needsTask) {
+    logDry(`Would create ${paths.task} via template`);
+  }
+
+  if (!dryRun && needsCostsLedger) {
+    await ensureCostsLedger(paths.costs);
+  } else if (dryRun && needsCostsLedger) {
+    logDry(`Would scaffold ${paths.costs}`);
+  }
+
   const taskCommitted = await commitIfChanged(paths.task, `chore: bootstrap issue #${issue.number}`, { dryRun });
   if (taskCommitted) {
     await pushBranch(branch, { dryRun });
