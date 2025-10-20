@@ -1,0 +1,17 @@
+# Task: <%= it.issue.title %>
+
+## Issue Details
+- **ID**: #<%= it.issue.number %>
+- **Title**: <%= it.issue.title %>
+- **Author**: <%= it.issue.user.login %>
+- **Created**: <%= it.issue.created_at %>
+
+## Description
+<%= it.issue.body || 'No description provided' %>
+
+## Work Package
+- **Name**: <%= it.workPackageName %>
+- **Slug**: <%= it.nameSlug %>
+
+## Current Status
+This is the bootstrap phase. The issue has been marked as "plan-proposed" and "locked".

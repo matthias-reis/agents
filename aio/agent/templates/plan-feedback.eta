@@ -1,0 +1,29 @@
+# Task: <%= it.issue.title %>
+
+## Issue Details
+- **ID**: #<%= it.issue.number %>
+- **Title**: <%= it.issue.title %>
+- **Author**: <%= it.issue.user.login %>
+
+## Description
+<%= it.issue.body || 'No description provided' %>
+
+<% if (it.pullRequest) { %>
+## Pull Request Information
+- **PR ID**: #<%= it.pullRequest.number %>
+- **Title**: <%= it.pullRequest.title %>
+- **State**: <%= it.pullRequest.state %>
+<% } %>
+
+<% if (it.comments && it.comments.length > 0) { %>
+## Feedback Comments
+<% it.comments.forEach(comment => { %>
+### Comment by <%= comment.user.login %> on <%= comment.created_at %>
+<%= comment.body %>
+
+<% }) %>
+<% } %>
+
+## Work Package
+- **Name**: <%= it.workPackageName %>
+- **Slug**: <%= it.nameSlug %>

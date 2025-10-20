@@ -1,0 +1,15 @@
+# Cost Analysis
+
+## Work Package: <%= it.workPackageName %>
+
+### Issue Details
+- **Issue ID**: #<%= it.issue.number %>
+- **Title**: <%= it.issue.title %>
+
+### Cost Breakdown
+- Planning Phase: TBD
+- Implementation Phase: TBD
+- Review Phase: TBD
+- Total Estimated Cost: TBD
+
+*This document will be updated as the work progresses.*

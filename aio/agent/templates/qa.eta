@@ -1,0 +1,9 @@
+## QA Report for <%= it.issue.title %>
+
+**Work Package**: <%= it.workPackageName %>
+**Issue**: #<%= it.issue.number %>
+
+### QA Content
+<%= it.qaContent || 'QA content not available' %>
+
+The "locked" label has been removed from the issue. The QA content has been posted as a comment on the issue.
