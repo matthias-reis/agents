@@ -1,9 +1,8 @@
 import path from 'path';
-import { fileURLToPath } from 'url';
 import { Eta } from 'eta';
 
-const moduleDir = path.dirname(fileURLToPath(import.meta.url));
-const templatesRoot = path.resolve(moduleDir, 'templates');
+const workspaceDir = process.cwd();
+const templatesRoot = path.resolve(workspaceDir, 'tools', 'templates');
 
 const renderer = new Eta({
   views: templatesRoot,
