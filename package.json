@@ -19,6 +19,7 @@
     "node": ">=20"
   },
   "dependencies": {
+    "eta": "^3.5.0",
     "dotenv": "^16.4.5",
     "octokit": "^4.0.0",
     "zod": "^3.23.8"

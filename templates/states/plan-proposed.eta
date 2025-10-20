@@ -1,0 +1,52 @@
+# Current Task: Work on Feedback for Plan
+
+- Issue: [#<%= it.issue.number %>](<%- it.issue.url %>) — <%- it.issue.title %>
+- State: <%- it.issue.state %>
+
+## Task description
+
+- read the information below, esp. the section "Pending Feedback" and modify the file Plan.md accordingly
+- Append a line to `costs.md` with:
+  - timestamp (UTC), provider, model, input_tokens, output_tokens, total_tokens, estUSD, headers snapshot (remaining/reset if available).
+- Do **not** modify other files.
+
+## Issue Summary
+
+<% if (it.issue.bodySnippet) { %>
+<%- it.issue.bodySnippet %>
+<% } else { %>
+_No issue body provided._
+<% } %>
+
+Labels: <%= it.labels.length ? it.labels.join(', ') : '—' %>
+
+## Pull Request
+
+<% if (it.pr) { %>
+- PR: [#<%= it.pr.number %>](<%- it.pr.url %>)
+- Draft: <%= it.pr.isDraft ? 'yes' : 'no' %>
+- Branch: <%- it.pr.headRef %> → <%- it.pr.baseRef %>
+- Commits: <%= typeof it.pr.commits === 'number' ? it.pr.commits : 'unknown' %>
+- Mergeable: <%- it.pr.mergeableState || 'unknown' %>
+<% } else { %>
+- _No associated pull request._
+<% } %>
+
+## Pending Feedback
+
+<% if (it.comments.length) { %>
+<% it.comments.forEach(function(comment) { %>
+- <%- comment.updatedAt %> — [<%- comment.author %>](<%- comment.url %>): <%- comment.bodySnippet %>
+<% }); %>
+<% } else { %>
+- _No new comments since last sync._
+<% } %>
+
+
+## Workspace Paths
+
+- Task: <%- it.paths.task %>
+- Plan: <%- it.paths.plan %>
+- QA: <%- it.paths.qa %>
+- Costs: <%- it.paths.costs %>
+- PR metadata: <%- it.paths.pr %>

@@ -1,5 +1,6 @@
 import { promises as fs } from 'fs';
 import path from 'path';
+import { renderTaskTemplate, TaskTemplateIssue } from './templates.js';
 
 export interface IssuePaths {
   root: string;
@@ -98,48 +99,19 @@ export async function ensureTaskFile(
   issue: IssueSnapshot,
   options: TaskTemplateOptions = {},
 ): Promise<boolean> {
-  const content = renderTaskMarkdown(issue, options);
+  const taskIssue: TaskTemplateIssue = {
+    number: issue.number,
+    title: issue.title,
+    state: issue.state,
+    url: issue.url,
+    labels: issue.labels,
+    body: issue.body ?? '',
+  };
+  const content = await renderTaskTemplate({
+    issue: taskIssue,
+    contextLinks: options.contextLinks ?? [],
+  });
   return writeFileIfChanged(paths.task, content);
-}
-
-export function renderTaskMarkdown(issue: IssueSnapshot, options: TaskTemplateOptions = {}): string {
-  const labels = issue.labels.length ? issue.labels.join(', ') : '—';
-  const body = (issue.body ?? '').trim();
-  const contextLinks = (options.contextLinks ?? []).map((link) => `- [${link}](${link})`).join('\n');
-  const summary = body.length ? body : '_Add details from the issue body here._';
-
-  return [
-    `# Issue #${issue.number}: ${issue.title}`,
-    '',
-    `- State: ${issue.state}`,
-    `- Labels: ${labels}`,
-    `- URL: ${issue.url}`,
-    '',
-    '## Summary',
-    '',
-    summary,
-    '',
-    '## Acceptance Criteria (draft)',
-    '',
-    '- [ ] _Document acceptance criteria here_',
-    '',
-    '## Feedback',
-    '',
-    '_Synced issue + PR feedback will be appended here._',
-    '',
-    '## CI feedback',
-    '',
-    '_CI status summaries will appear here._',
-    '',
-    '## Conflicts',
-    '',
-    '_Conflict details (if any) will be recorded here._',
-    '',
-    '## Links',
-    '',
-    contextLinks.length ? contextLinks : '- _Add helpful context links here_',
-    '',
-  ].join('\n');
 }
 
 export async function appendToSection(filePath: string, options: AppendOptions): Promise<boolean> {

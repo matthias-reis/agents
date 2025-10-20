@@ -1,0 +1,38 @@
+## Ready to Merge
+
+- Issue: [#<%= it.issue.number %>](<%- it.issue.url %>) — <%- it.issue.title %>
+- Labels: <%= it.labels.length ? it.labels.join(', ') : '—' %>
+
+### Pull Request
+
+<% if (it.pr) { %>
+- PR: [#<%= it.pr.number %>](<%- it.pr.url %>)
+- Branch: <%- it.pr.headRef %> → <%- it.pr.baseRef %>
+- Commits: <%= typeof it.pr.commits === 'number' ? it.pr.commits : 'unknown' %>
+- Mergeable: <%- it.pr.mergeableState || 'clean' %>
+<% } else { %>
+- _No associated pull request._
+<% } %>
+
+### Cost Summary
+
+<% if (it.extras && it.extras.costSummary) { %>
+- Total tokens: <%- it.extras.costSummary.totalTokens %>
+- Total cost (USD): <%- it.extras.costSummary.totalUSD %>
+<% } else { %>
+- _Cost ledger not summarized._
+<% } %>
+
+### QA Checklist
+
+- QA comment URL: <%- it.metadata && it.metadata.qaCommentUrl ? it.metadata.qaCommentUrl : 'not posted' %>
+
+### Final Notes
+
+<% if (it.comments.length) { %>
+<% it.comments.forEach(function(comment) { %>
+- <%- comment.updatedAt %> — [<%- comment.author %>](<%- comment.url %>): <%- comment.bodySnippet %>
+<% }); %>
+<% } else { %>
+- _No final review comments._
+<% } %>

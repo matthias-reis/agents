@@ -41,6 +41,16 @@ import {
 } from './io.js';
 import { determineState } from './state.js';
 import { COSTS_FILENAME, readCostEntries, sumCosts, formatTotalLine } from './costs.js';
+import {
+  renderStateTemplate,
+  type StateTemplateModel,
+  type TemplateComment,
+  type TemplateIssue,
+  type TemplateMetadata,
+  type TemplatePaths,
+  type TemplatePullRequest,
+} from './templates.js';
+import type { IssuePaths } from './io.js';
 
 const execFileAsync = promisify(execFile);
 
@@ -154,9 +164,11 @@ async function main() {
   }
 
   let hasConflicts = false;
-  if (prSummary?.mergeable_state) {
-    hasConflicts = prSummary.mergeable_state === 'dirty';
+  if (prSummary?.mergeableState) {
+    hasConflicts = prSummary.mergeableState === 'dirty';
   }
+
+  const issueComments = await listIssueComments(octokit, repo, issue.number);
 
   const stateResult = determineState({
     issueOpen: issue.state === 'open',
@@ -197,6 +209,14 @@ async function main() {
           paths,
           dryRun: options.dryRun,
           labels,
+          issueComments,
+          issueLabels: Array.from(issueLabels),
+          hasTask,
+          hasPlan,
+          hasQa,
+          hasConflicts,
+          prSummary,
+          prMetadata,
         });
         break;
       case 'plan-proposed':
@@ -211,6 +231,12 @@ async function main() {
           labels,
           prMetadata,
           prSummary,
+          issueComments,
+          issueLabels: Array.from(issueLabels),
+          hasTask,
+          hasPlan,
+          hasQa,
+          hasConflicts,
         }));
         break;
       case 'implementation':
@@ -223,6 +249,13 @@ async function main() {
           labels,
           prMetadata,
           prSummary,
+          issueComments,
+          issueLabels: Array.from(issueLabels),
+          hasTask,
+          hasPlan,
+          hasQa,
+          hasConflicts,
+          dryRunValue: options.dryRun,
         }));
         break;
       case 'in-review':
@@ -235,6 +268,12 @@ async function main() {
           labels,
           prMetadata,
           prSummary,
+          issueComments,
+          issueLabels: Array.from(issueLabels),
+          hasTask,
+          hasPlan,
+          hasQa,
+          hasConflicts,
         }));
         break;
       case 'conflict':
@@ -243,6 +282,13 @@ async function main() {
           paths,
           prSummary,
           dryRun: options.dryRun,
+          issueComments,
+          issueLabels: Array.from(issueLabels),
+          hasTask,
+          hasPlan,
+          hasQa,
+          hasConflicts,
+          prMetadata,
         });
         break;
       case 'ready-to-merge':
@@ -255,10 +301,29 @@ async function main() {
           labels,
           prMetadata,
           prSummary,
+          issueComments,
+          issueLabels: Array.from(issueLabels),
+          hasTask,
+          hasPlan,
+          hasQa,
+          hasConflicts,
         });
         break;
       case 'idle':
       default:
+        await logStateSummary('idle', {
+          issue,
+          issueLabels: Array.from(issueLabels),
+          paths,
+          prSummary,
+          prMetadata,
+          comments: issueComments,
+          hasTask,
+          hasPlan,
+          hasQa,
+          hasConflicts,
+          dryRun: options.dryRun,
+        });
         logInfo('No actionable state; exiting.');
         break;
     }
@@ -282,7 +347,29 @@ async function handleBootstrap({
   paths,
   dryRun,
   labels,
+  issueComments,
+  issueLabels,
+  hasTask,
+  hasPlan,
+  hasQa,
+  hasConflicts,
+  prSummary,
+  prMetadata,
 }: any) {
+  await logStateSummary('bootstrap', {
+    issue,
+    issueLabels,
+    paths,
+    prSummary,
+    prMetadata,
+    comments: issueComments,
+    hasTask,
+    hasPlan,
+    hasQa,
+    hasConflicts,
+    dryRun,
+  });
+
   const branch = branchName(issue.number, slug);
   await ensureGitBranch(branch, baseRef, { dryRun });
   const taskCommitted = await commitIfChanged(paths.task, `chore: bootstrap issue #${issue.number}`, { dryRun });
@@ -308,6 +395,12 @@ async function handlePlanProposed({
   labels,
   prMetadata,
   prSummary,
+  issueComments,
+  issueLabels,
+  hasTask,
+  hasPlan,
+  hasQa,
+  hasConflicts,
 }: any) {
   const branch = branchName(issue.number, slug);
   await ensureGitBranch(branch, baseRef, { dryRun });
@@ -331,6 +424,22 @@ async function handlePlanProposed({
     prMetadata = await updatePrMetadata(paths.pr, prMetadata, prSummary, { dryRun });
   }
 
+  const newComments = filterCommentsSince(issueComments, prMetadata?.lastIssueSyncAt);
+
+  await logStateSummary('plan-proposed', {
+    issue,
+    issueLabels,
+    paths,
+    prSummary,
+    prMetadata,
+    comments: newComments,
+    hasTask,
+    hasPlan,
+    hasQa,
+    hasConflicts,
+    dryRun,
+  });
+
   const planCommitted = await commitIfChanged(paths.plan, `docs: add PLAN for issue #${issue.number}`, {
     dryRun,
   });
@@ -344,9 +453,6 @@ async function handlePlanProposed({
     () => addIssueLabels(octokit, repo, issue.number, [labels.planProposed]),
   );
 
-  const newComments = await listIssueComments(octokit, repo, issue.number, {
-    since: prMetadata?.lastIssueSyncAt,
-  });
   if (newComments.length) {
     const entries = newComments.map(
       (comment) =>
@@ -389,12 +495,31 @@ async function handleImplementation({
   labels,
   prMetadata,
   prSummary,
+  issueComments,
+  issueLabels,
+  hasTask,
+  hasPlan,
+  hasQa,
+  hasConflicts,
 }: any) {
   if (!prSummary && prMetadata) {
     prSummary = await safeGetPull(octokit, repo, prMetadata.number);
   }
 
   if (!prSummary) {
+    await logStateSummary('implementation', {
+      issue,
+      issueLabels,
+      paths,
+      prSummary: null,
+      prMetadata,
+      comments: issueComments,
+      hasTask,
+      hasPlan,
+      hasQa,
+      hasConflicts,
+      dryRun,
+    });
     logInfo('No PR found; implementation stage requires a PR. Skipping.');
     return { prMetadata, prSummary };
   }
@@ -403,6 +528,7 @@ async function handleImplementation({
   await ensureGitBranch(branch, prSummary.baseRef, { dryRun });
 
   let qaCreated = false;
+  let qaPresent = hasQa;
   if (!dryRun) {
     qaCreated = await ensureScaffold(paths.qa, 'QA Checklist', '- [ ] Add QA notes');
   } else {
@@ -410,6 +536,7 @@ async function handleImplementation({
   }
   if (qaCreated) {
     await commitIfChanged(paths.qa, `docs: scaffold QA checklist for issue #${issue.number}`, { dryRun });
+    qaPresent = true;
   }
 
   if (qaCreated) {
@@ -464,11 +591,30 @@ async function handleInReview({
   dryRun,
   prMetadata,
   prSummary,
+  issueComments,
+  issueLabels,
+  hasTask,
+  hasPlan,
+  hasQa,
+  hasConflicts,
 }: any) {
   if (!prSummary && prMetadata) {
     prSummary = await safeGetPull(octokit, repo, prMetadata.number);
   }
   if (!prSummary) {
+    await logStateSummary('in-review', {
+      issue,
+      issueLabels,
+      paths,
+      prSummary: null,
+      prMetadata,
+      comments: issueComments,
+      hasTask,
+      hasPlan,
+      hasQa,
+      hasConflicts,
+      dryRun,
+    });
     logInfo('PR not found; cannot sync review feedback.');
     return { prMetadata };
   }
@@ -529,14 +675,68 @@ async function handleInReview({
     }
   }
 
+  await logStateSummary('in-review', {
+    issue,
+    issueLabels,
+    paths,
+    prSummary,
+    prMetadata,
+    comments: [...issueComments, ...reviewComments, ...reviews],
+    hasTask,
+    hasPlan,
+    hasQa,
+    hasConflicts,
+    dryRun,
+  });
+
   return { prMetadata };
 }
 
-async function handleConflict({ issue, paths, prSummary, dryRun }: any) {
+async function handleConflict({
+  issue,
+  paths,
+  prSummary,
+  dryRun,
+  issueComments,
+  issueLabels,
+  hasTask,
+  hasPlan,
+  hasQa,
+  hasConflicts,
+  prMetadata,
+}: any) {
   if (!prSummary) {
+    await logStateSummary('conflict', {
+      issue,
+      issueLabels,
+      paths,
+      prSummary: null,
+      prMetadata,
+      comments: issueComments,
+      hasTask,
+      hasPlan,
+      hasQa,
+      hasConflicts,
+      dryRun,
+    });
     logInfo('Conflict stage reached but PR missing; nothing to record.');
     return;
   }
+
+  await logStateSummary('conflict', {
+    issue,
+    issueLabels,
+    paths,
+    prSummary,
+    prMetadata,
+    comments: issueComments,
+    hasTask,
+    hasPlan,
+    hasQa,
+    hasConflicts,
+    dryRun,
+  });
+
   await ensureGitBranch(prSummary.headRef, prSummary.baseRef, { dryRun });
   const entries = [
     `- Conflict detected for head **${prSummary.headRef}** against base **${prSummary.baseRef}**.`,
@@ -559,11 +759,30 @@ async function handleReadyToMerge({
   labels,
   prMetadata,
   prSummary,
+  issueComments,
+  issueLabels,
+  hasTask,
+  hasPlan,
+  hasQa,
+  hasConflicts,
 }: any) {
   if (!prSummary && prMetadata) {
     prSummary = await safeGetPull(octokit, repo, prMetadata.number);
   }
   if (!prSummary) {
+    await logStateSummary('ready-to-merge', {
+      issue,
+      issueLabels,
+      paths,
+      prSummary: null,
+      prMetadata,
+      comments: issueComments,
+      hasTask,
+      hasPlan,
+      hasQa,
+      hasConflicts,
+      dryRun,
+    });
     logInfo('Ready-to-merge stage reached but PR missing.');
     return;
   }
@@ -573,6 +792,26 @@ async function handleReadyToMerge({
 
   const entries = await readCostEntries(paths.root);
   const totals = sumCosts(entries);
+  const costSummary = {
+    totalTokens: totals.totalTokens,
+    totalUSD: totals.totalUSD.toFixed(2),
+  };
+
+  await logStateSummary('ready-to-merge', {
+    issue,
+    issueLabels,
+    paths,
+    prSummary,
+    prMetadata,
+    comments: issueComments,
+    hasTask,
+    hasPlan,
+    hasQa,
+    hasConflicts,
+    dryRun,
+    extras: { costSummary },
+  });
+
   const totalLine = formatTotalLine(totals);
   await withDryRun(dryRun, 'Append TOTAL to costs.md', async () => {
     const file = path.join(paths.root, COSTS_FILENAME);
@@ -803,6 +1042,160 @@ async function collectCiFailures(octokit: any, repo: any, prSummary: any): Promi
   }
 
   return Array.from(new Set(notes));
+}
+
+type StateLogParams = {
+  issue: any;
+  issueLabels: string[];
+  paths: IssuePaths;
+  prSummary?: any | null;
+  prMetadata?: PRMetadata | null;
+  comments?: any[];
+  hasTask: boolean;
+  hasPlan: boolean;
+  hasQa: boolean;
+  hasConflicts: boolean;
+  dryRun: boolean;
+  extras?: Record<string, unknown>;
+};
+
+const MAX_TEMPLATE_COMMENTS = 10;
+
+async function logStateSummary(state: string, params: StateLogParams): Promise<void> {
+  try {
+    const model = buildStateTemplateModel(params);
+    const rendered = await renderStateTemplate(state, model);
+    logInfo(rendered.trimEnd());
+  } catch (error: any) {
+    logWarn(`Failed to render template for state "${state}": ${error.message ?? error}`);
+  }
+}
+
+function buildStateTemplateModel(params: StateLogParams): StateTemplateModel {
+  const issueModel = toTemplateIssue(params.issue);
+  const commentModels = toTemplateComments(params.comments);
+  const prModel = params.prSummary ? toTemplatePullRequest(params.prSummary) : null;
+  const metadataModel = params.prMetadata ? toTemplateMetadata(params.prMetadata) : null;
+  const pathsModel = toTemplatePaths(params.paths);
+
+  return {
+    issue: issueModel,
+    labels: params.issueLabels,
+    comments: commentModels,
+    pr: prModel,
+    metadata: metadataModel,
+    paths: pathsModel,
+    flags: {
+      hasTask: params.hasTask,
+      hasPlan: params.hasPlan,
+      hasQa: params.hasQa,
+      hasConflicts: params.hasConflicts,
+      hasPr: Boolean(params.prSummary),
+      dryRun: params.dryRun,
+    },
+    extras: params.extras,
+  };
+}
+
+function toTemplateIssue(issue: any): TemplateIssue {
+  const body = typeof issue?.body === 'string' ? issue.body : '';
+  const url = issue?.html_url ?? issue?.url ?? '';
+  const state = issue?.state ?? 'unknown';
+  const title = issue?.title ?? 'Untitled Issue';
+  const snippet = truncateText(sanitizeForMarkdown(body), 320);
+
+  return {
+    number: issue?.number ?? 0,
+    title,
+    url,
+    state,
+    body,
+    bodySnippet: snippet,
+  };
+}
+
+function toTemplateComments(rawComments?: any[]): TemplateComment[] {
+  if (!Array.isArray(rawComments)) return [];
+  const trimmed =
+    rawComments.length > MAX_TEMPLATE_COMMENTS
+      ? rawComments.slice(-MAX_TEMPLATE_COMMENTS)
+      : rawComments.slice();
+
+  return trimmed.map((comment: any) => {
+    const body = typeof comment?.body === 'string' ? comment.body : '';
+    const updatedAt = comment?.updated_at ?? comment?.submitted_at ?? comment?.created_at ?? 'unknown';
+    const author = comment?.user?.login ?? comment?.author ?? 'unknown';
+    const url = comment?.html_url ?? comment?.url ?? '';
+    return {
+      id: comment?.id ?? 0,
+      author,
+      url,
+      updatedAt,
+      body,
+      bodySnippet: truncateText(sanitizeForMarkdown(body), 200),
+    };
+  });
+}
+
+function toTemplatePullRequest(pr: any): TemplatePullRequest {
+  return {
+    number: pr?.number ?? 0,
+    url: pr?.html_url ?? pr?.url ?? '',
+    state: pr?.state ?? 'unknown',
+    headRef: pr?.headRef ?? pr?.head?.ref ?? 'unknown',
+    baseRef: pr?.baseRef ?? pr?.base?.ref ?? 'unknown',
+    isDraft: Boolean(pr?.isDraft ?? pr?.draft),
+    mergeableState: pr?.mergeableState ?? pr?.mergeable_state ?? undefined,
+    commits: typeof pr?.commits === 'number' ? pr.commits : undefined,
+    createdAt: pr?.createdAt ?? pr?.created_at ?? undefined,
+  };
+}
+
+function toTemplateMetadata(metadata: PRMetadata): TemplateMetadata {
+  return {
+    number: metadata?.number,
+    url: metadata?.url,
+    head: metadata?.head,
+    base: metadata?.base,
+    lastIssueSyncAt: metadata?.lastIssueSyncAt,
+    lastReviewSyncAt: metadata?.lastReviewSyncAt,
+    lastCiSyncAt: metadata?.lastCiSyncAt,
+    qaCommentUrl: metadata?.qaCommentUrl,
+  };
+}
+
+function toTemplatePaths(paths: IssuePaths): TemplatePaths {
+  return {
+    root: relativeToWorkspace(paths.root),
+    task: relativeToWorkspace(paths.task),
+    plan: relativeToWorkspace(paths.plan),
+    qa: relativeToWorkspace(paths.qa),
+    pr: relativeToWorkspace(paths.pr),
+    costs: relativeToWorkspace(paths.costs),
+  };
+}
+
+function relativeToWorkspace(targetPath: string): string {
+  const relative = path.relative(workspaceRoot, targetPath);
+  return relative || targetPath;
+}
+
+function truncateText(input: string, maxLength: number): string {
+  const normalized = input.trim();
+  if (!normalized) return '';
+  if (normalized.length <= maxLength) return normalized;
+  return `${normalized.slice(0, Math.max(0, maxLength - 3)).trimEnd()}...`;
+}
+
+function filterCommentsSince(comments: any[], since?: string | null): any[] {
+  if (!Array.isArray(comments) || !since) {
+    return Array.isArray(comments) ? comments : [];
+  }
+  return comments.filter((comment) => {
+    const timestamp = comment?.updated_at ?? comment?.created_at ?? comment?.submitted_at;
+    if (!timestamp) return true;
+    return timestamp > since;
+  });
 }
 
 function branchName(issueNumber: number, slug: string): string {

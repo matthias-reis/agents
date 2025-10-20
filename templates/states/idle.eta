@@ -1,0 +1,32 @@
+## Idle State
+
+- Issue: [#<%= it.issue.number %>](<%- it.issue.url %>) — <%- it.issue.title %>
+- State: <%- it.issue.state %>
+- Labels: <%= it.labels.length ? it.labels.join(', ') : '—' %>
+
+### Issue Snapshot
+
+<% if (it.issue.bodySnippet) { %>
+<%- it.issue.bodySnippet %>
+<% } else { %>
+_No issue body provided._
+<% } %>
+
+### Workspace Flags
+
+- Task file present: <%= it.flags.hasTask ? 'yes' : 'no' %>
+- Plan file present: <%= it.flags.hasPlan ? 'yes' : 'no' %>
+- QA notes present: <%= it.flags.hasQa ? 'yes' : 'no' %>
+- PR detected: <%= it.flags.hasPr ? 'yes' : 'no' %>
+- Merge conflicts: <%= it.flags.hasConflicts ? 'yes' : 'no' %>
+- Dry run: <%= it.flags.dryRun ? 'yes' : 'no' %>
+
+### Recent Comments
+
+<% if (it.comments.length) { %>
+<% it.comments.forEach(function(comment) { %>
+- <%- comment.updatedAt %> — [<%- comment.author %>](<%- comment.url %>): <%- comment.bodySnippet %>
+<% }); %>
+<% } else { %>
+- _No comments to report._
+<% } %>
