@@ -1,0 +1,10 @@
+## Task Update: <%= it.issue.title %>
+
+**Work Package**: <%= it.workPackageName %>
+**Issue**: #<%= it.issue.number %>
+
+<% if (it.pullRequest) { %>
+**Pull Request**: #<%= it.pullRequest.number %>
+<% } %>
+
+Your task files have been updated in the `<%= it.workPackageName %>` directory. Please review the TASK.md file and proceed with the implementation.
