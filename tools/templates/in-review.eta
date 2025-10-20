@@ -36,6 +36,17 @@
 - _No metadata recorded._
 <% } %>
 
+### CI Feedback
+
+<% const ciNotes = (it.extras && it.extras.ciNotes) || []; %>
+<% if (ciNotes.length) { %>
+<% ciNotes.forEach(function(note) { %>
+- <%- note %>
+<% }); %>
+<% } else { %>
+- _No CI failures recorded._
+<% } %>
+
 ### Workspace Flags
 
 - Task file present: <%= it.flags.hasTask ? 'yes' : 'no' %>
@@ -43,3 +54,14 @@
 - QA notes present: <%= it.flags.hasQa ? 'yes' : 'no' %>
 - Merge conflicts: <%= it.flags.hasConflicts ? 'yes' : 'no' %>
 - Dry run: <%= it.flags.dryRun ? 'yes' : 'no' %>
+
+### Context Links
+
+<% const contextLinks = (it.extras && it.extras.contextLinks) || []; %>
+<% if (contextLinks.length) { %>
+<% contextLinks.forEach(function(link) { %>
+- [<%- link %>](<%- link %>)
+<% }); %>
+<% } else { %>
+- _No context links discovered._
+<% } %>

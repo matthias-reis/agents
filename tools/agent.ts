@@ -32,7 +32,6 @@ import {
   getIssuePaths,
   ensureIssueDirectory,
   ensureTaskFile,
-  appendToSection,
   ensureScaffold,
   ensureCostsLedger,
   readFileIfExists,
@@ -233,6 +232,7 @@ async function main() {
           hasPlan,
           hasQa,
           hasConflicts,
+          contextLinks,
         }));
         break;
       case 'implementation':
@@ -251,7 +251,7 @@ async function main() {
           hasPlan,
           hasQa,
           hasConflicts,
-          dryRunValue: options.dryRun,
+          contextLinks,
         }));
         break;
       case 'in-review':
@@ -270,6 +270,7 @@ async function main() {
           hasPlan,
           hasQa,
           hasConflicts,
+          contextLinks,
         }));
         break;
       case 'conflict':
@@ -285,6 +286,7 @@ async function main() {
           hasQa,
           hasConflicts,
           prMetadata,
+          contextLinks,
         });
         break;
       case 'ready-to-merge':
@@ -303,23 +305,30 @@ async function main() {
           hasPlan,
           hasQa,
           hasConflicts,
+          contextLinks,
         });
         break;
       case 'idle':
       default:
-        await logStateSummary('idle', {
-          issue,
-          issueLabels: Array.from(issueLabels),
+        await renderAndWriteTaskTemplate(
+          'idle',
+          {
+            issue,
+            issueLabels: Array.from(issueLabels),
+            paths,
+            prSummary,
+            prMetadata,
+            comments: issueComments,
+            hasTask: options.dryRun ? hasTask : true,
+            hasPlan,
+            hasQa,
+            hasConflicts,
+            dryRun: options.dryRun,
+            extras: { contextLinks },
+          },
           paths,
-          prSummary,
-          prMetadata,
-          comments: issueComments,
-          hasTask,
-          hasPlan,
-          hasQa,
-          hasConflicts,
-          dryRun: options.dryRun,
-        });
+          { dryRun: options.dryRun, writeTask: true },
+        );
         logInfo('No actionable state; exiting.');
         break;
     }
@@ -358,28 +367,26 @@ async function handleBootstrap({
   const branch = branchName(issue.number, slug);
   await ensureGitBranch(branch, baseRef, { dryRun });
 
-  const finalHasTask = hasTask || (!dryRun && needsTask);
-  const summary = await renderStateSummary('bootstrap', {
-    issue,
-    issueLabels,
+  const finalHasTask = dryRun ? hasTask : true;
+  const { wrote } = await renderAndWriteTaskTemplate(
+    'bootstrap',
+    {
+      issue,
+      issueLabels,
+      paths,
+      prSummary,
+      prMetadata,
+      comments: issueComments,
+      hasTask: finalHasTask,
+      hasPlan,
+      hasQa,
+      hasConflicts,
+      dryRun,
+      extras: { contextLinks },
+    },
     paths,
-    prSummary,
-    prMetadata,
-    comments: issueComments,
-    hasTask: finalHasTask,
-    hasPlan,
-    hasQa,
-    hasConflicts,
-    dryRun,
-    extras: { contextLinks },
-  });
-  logInfo(summary.trimEnd());
-
-  if (!dryRun && needsTask) {
-    await ensureTaskFile(paths, summary);
-  } else if (dryRun && needsTask) {
-    logDry(`Would create ${paths.task} via template`);
-  }
+    { dryRun, writeTask: true },
+  );
 
   if (!dryRun && needsCostsLedger) {
     await ensureCostsLedger(paths.costs);
@@ -387,7 +394,8 @@ async function handleBootstrap({
     logDry(`Would scaffold ${paths.costs}`);
   }
 
-  const taskCommitted = await commitIfChanged(paths.task, `chore: bootstrap issue #${issue.number}`, { dryRun });
+  const taskCommitted =
+    wrote && (await commitIfChanged(paths.task, taskCommitMessage('bootstrap', issue.number), { dryRun }));
   if (taskCommitted) {
     await pushBranch(branch, { dryRun });
   }
@@ -416,6 +424,7 @@ async function handlePlanProposed({
   hasPlan,
   hasQa,
   hasConflicts,
+  contextLinks,
 }: any) {
   const branch = branchName(issue.number, slug);
   await ensureGitBranch(branch, baseRef, { dryRun });
@@ -441,19 +450,31 @@ async function handlePlanProposed({
 
   const newComments = filterCommentsSince(issueComments, prMetadata?.lastIssueSyncAt);
 
-  await logStateSummary('plan-proposed', {
-    issue,
-    issueLabels,
+  const { wrote } = await renderAndWriteTaskTemplate(
+    'plan-proposed',
+    {
+      issue,
+      issueLabels,
+      paths,
+      prSummary,
+      prMetadata,
+      comments: newComments,
+      hasTask: dryRun ? hasTask : true,
+      hasPlan,
+      hasQa,
+      hasConflicts,
+      dryRun,
+      extras: { contextLinks },
+    },
     paths,
-    prSummary,
-    prMetadata,
-    comments: newComments,
-    hasTask,
-    hasPlan,
-    hasQa,
-    hasConflicts,
-    dryRun,
-  });
+    { dryRun, writeTask: true },
+  );
+  if (wrote) {
+    const committed = await commitIfChanged(paths.task, taskCommitMessage('plan-proposed', issue.number), { dryRun });
+    if (committed) {
+      await pushBranch(branch, { dryRun });
+    }
+  }
 
   const planCommitted = await commitIfChanged(paths.plan, `docs: add PLAN for issue #${issue.number}`, {
     dryRun,
@@ -468,26 +489,13 @@ async function handlePlanProposed({
     () => addIssueLabels(octokit, repo, issue.number, [labels.planProposed]),
   );
 
-  if (newComments.length) {
-    const entries = newComments.map(
-      (comment) =>
-        `- ${comment.updated_at} — [${comment.user?.login}](${comment.html_url}): ${sanitizeForMarkdown(
-          comment.body ?? '',
-        )}`,
+  if (newComments.length && prSummary) {
+    prMetadata = await updatePrMetadata(
+      paths.pr,
+      { ...prMetadata, lastIssueSyncAt: newComments.at(-1)?.updated_at },
+      prSummary,
+      { dryRun },
     );
-    const updated = await appendToSection(paths.task, { heading: 'Feedback', entries });
-    if (updated) {
-      await commitIfChanged(paths.task, `docs: sync issue feedback for #${issue.number}`, { dryRun });
-      await pushBranch(branch, { dryRun });
-    }
-    if (prSummary) {
-      prMetadata = await updatePrMetadata(
-        paths.pr,
-        { ...prMetadata, lastIssueSyncAt: newComments.at(-1)?.updated_at },
-        prSummary,
-        { dryRun },
-      );
-    }
   }
 
   if (prSummary) {
@@ -516,25 +524,31 @@ async function handleImplementation({
   hasPlan,
   hasQa,
   hasConflicts,
+  contextLinks,
 }: any) {
   if (!prSummary && prMetadata) {
     prSummary = await safeGetPull(octokit, repo, prMetadata.number);
   }
-
   if (!prSummary) {
-    await logStateSummary('implementation', {
-      issue,
-      issueLabels,
+    await renderAndWriteTaskTemplate(
+      'implementation',
+      {
+        issue,
+        issueLabels,
+        paths,
+        prSummary: null,
+        prMetadata,
+        comments: issueComments,
+        hasTask: dryRun ? hasTask : true,
+        hasPlan,
+        hasQa,
+        hasConflicts,
+        dryRun,
+        extras: { contextLinks },
+      },
       paths,
-      prSummary: null,
-      prMetadata,
-      comments: issueComments,
-      hasTask,
-      hasPlan,
-      hasQa,
-      hasConflicts,
-      dryRun,
-    });
+      { dryRun, writeTask: true },
+    );
     logInfo('No PR found; implementation stage requires a PR. Skipping.');
     return { prMetadata, prSummary };
   }
@@ -550,16 +564,16 @@ async function handleImplementation({
     logDry('Would scaffold qa.md');
   }
   if (qaCreated) {
-    await commitIfChanged(paths.qa, `docs: scaffold QA checklist for issue #${issue.number}`, { dryRun });
+    const qaCommitted = await commitIfChanged(paths.qa, `docs: scaffold QA checklist for issue #${issue.number}`, {
+      dryRun,
+    });
+    if (qaCommitted) {
+      await pushBranch(branch, { dryRun });
+    }
     qaPresent = true;
   }
 
-  if (qaCreated) {
-    await pushBranch(branch, { dryRun });
-  }
-
   const unpushed = await hasUnpushedCommits(branch);
-
   if (unpushed) {
     await pushBranch(branch, { dryRun });
     if (prSummary.draft) {
@@ -572,30 +586,61 @@ async function handleImplementation({
       `Apply label ${labels.inReview}`,
       () => addPullRequestLabels(octokit, repo, prSummary!.number, [labels.inReview]),
     );
+  }
 
-    const qaBody = (await readFileIfExists(paths.qa)) ?? '';
-    if (qaBody.trim().length && !prMetadata?.qaCommentId) {
-      const qaComment = await withDryRunReturning(dryRun, 'Post QA checklist comment', async () => {
-        const comment = await postPRComment(
-          octokit,
-          repo,
-          prSummary!.number,
-          ['## QA Checklist', '', qaBody.trim()].join('\n'),
-        );
-        return { url: comment.html_url, id: comment.id } as QACommentResult;
-      });
-      if (qaComment) {
-        prMetadata = await updatePrMetadata(
-          paths.pr,
-          { ...prMetadata, qaCommentUrl: qaComment.url, qaCommentId: qaComment.id },
-          prSummary,
-          { dryRun },
-        );
-      }
+  const qaBody = (await readFileIfExists(paths.qa)) ?? '';
+  if (qaBody.trim().length && !prMetadata?.qaCommentId) {
+    const qaComment = await withDryRunReturning(dryRun, 'Post QA checklist comment', async () => {
+      const comment = await postPRComment(
+        octokit,
+        repo,
+        prSummary!.number,
+        ['## QA Checklist', '', qaBody.trim()].join('\n'),
+      );
+      return { url: comment.html_url, id: comment.id } as QACommentResult;
+    });
+    if (qaComment) {
+      prMetadata = await updatePrMetadata(
+        paths.pr,
+        { ...prMetadata, qaCommentUrl: qaComment.url, qaCommentId: qaComment.id },
+        prSummary,
+        { dryRun },
+      );
     }
   }
 
-  return { prMetadata, prSummary };
+  const ciNotes = await collectCiFailures(octokit, repo, prSummary);
+  const { wrote } = await renderAndWriteTaskTemplate(
+    'implementation',
+    {
+      issue,
+      issueLabels,
+      paths,
+      prSummary,
+      prMetadata,
+      comments: issueComments,
+      hasTask: dryRun ? hasTask : true,
+      hasPlan,
+      hasQa: qaPresent,
+      hasConflicts,
+      dryRun,
+      extras: {
+        ciNotes,
+        qaCommentUrl: prMetadata?.qaCommentUrl ?? null,
+        contextLinks,
+      },
+    },
+    paths,
+    { dryRun, writeTask: true },
+  );
+  if (wrote) {
+    const committed = await commitIfChanged(paths.task, taskCommitMessage('implementation', issue.number), { dryRun });
+    if (committed) {
+      await pushBranch(branch, { dryRun });
+    }
+  }
+
+  return { prMetadata };
 }
 
 async function handleInReview({
@@ -612,97 +657,84 @@ async function handleInReview({
   hasPlan,
   hasQa,
   hasConflicts,
+  contextLinks,
 }: any) {
   if (!prSummary && prMetadata) {
     prSummary = await safeGetPull(octokit, repo, prMetadata.number);
   }
   if (!prSummary) {
-    await logStateSummary('in-review', {
-      issue,
-      issueLabels,
+    await renderAndWriteTaskTemplate(
+      'in-review',
+      {
+        issue,
+        issueLabels,
+        paths,
+        prSummary: null,
+        prMetadata,
+        comments: issueComments,
+        hasTask: dryRun ? hasTask : true,
+        hasPlan,
+        hasQa,
+        hasConflicts,
+        dryRun,
+        extras: { contextLinks },
+      },
       paths,
-      prSummary: null,
-      prMetadata,
-      comments: issueComments,
-      hasTask,
-      hasPlan,
-      hasQa,
-      hasConflicts,
-      dryRun,
-    });
+      { dryRun, writeTask: true },
+    );
     logInfo('PR not found; cannot sync review feedback.');
     return { prMetadata };
   }
   const branch = prSummary.headRef;
   await ensureGitBranch(branch, prSummary.baseRef, { dryRun });
 
-  const feedbackEntries: string[] = [];
   const reviewComments = await listReviewComments(octokit, repo, prSummary.number, {
     since: prMetadata?.lastReviewSyncAt,
   });
 
-  if (reviewComments.length) {
-    for (const comment of reviewComments) {
-      feedbackEntries.push(
-        `- ${comment.updated_at} — [${comment.user?.login}](${comment.html_url}): ${sanitizeForMarkdown(
-          comment.body ?? '',
-        )}`,
-      );
-    }
-  }
-
   const reviews = await listReviews(octokit, repo, prSummary.number, {
     since: prMetadata?.lastReviewSyncAt,
   });
-  for (const review of reviews) {
-    if (!review.submitted_at || !review.body) continue;
-    feedbackEntries.push(
-      `- ${review.submitted_at} — [${review.user?.login}](${review.html_url}): ${sanitizeForMarkdown(
-        review.body,
-      )}`,
-    );
-  }
-
-  if (feedbackEntries.length) {
-    const updated = await appendToSection(paths.task, { heading: 'Feedback', entries: feedbackEntries });
-    if (updated) {
-      await commitIfChanged(paths.task, `docs: sync PR feedback for #${issue.number}`, { dryRun });
+  const ciNotes = await collectCiFailures(octokit, repo, prSummary);
+  const combinedComments = [...issueComments, ...reviewComments, ...reviews];
+  const { wrote } = await renderAndWriteTaskTemplate(
+    'in-review',
+    {
+      issue,
+      issueLabels,
+      paths,
+      prSummary,
+      prMetadata,
+      comments: combinedComments,
+      hasTask: dryRun ? hasTask : true,
+      hasPlan,
+      hasQa,
+      hasConflicts,
+      dryRun,
+      extras: { ciNotes, contextLinks },
+    },
+    paths,
+    { dryRun, writeTask: true },
+  );
+  if (wrote) {
+    const committed = await commitIfChanged(paths.task, taskCommitMessage('in-review', issue.number), { dryRun });
+    if (committed) {
       await pushBranch(branch, { dryRun });
     }
+  }
 
+  if ((reviewComments.length || reviews.length) && prSummary) {
     prMetadata = await updatePrMetadata(
       paths.pr,
       {
         ...prMetadata,
-        lastReviewSyncAt: reviewComments.at(-1)?.updated_at ?? reviews.at(-1)?.submitted_at ?? prMetadata?.lastReviewSyncAt,
+        lastReviewSyncAt:
+          reviewComments.at(-1)?.updated_at ?? reviews.at(-1)?.submitted_at ?? prMetadata?.lastReviewSyncAt,
       },
       prSummary,
       { dryRun },
     );
   }
-
-  const ciNotes = await collectCiFailures(octokit, repo, prSummary);
-  if (ciNotes.length) {
-    const updated = await appendToSection(paths.task, { heading: 'CI feedback', entries: ciNotes });
-    if (updated) {
-      await commitIfChanged(paths.task, `docs: capture CI feedback for #${issue.number}`, { dryRun });
-      await pushBranch(branch, { dryRun });
-    }
-  }
-
-  await logStateSummary('in-review', {
-    issue,
-    issueLabels,
-    paths,
-    prSummary,
-    prMetadata,
-    comments: [...issueComments, ...reviewComments, ...reviews],
-    hasTask,
-    hasPlan,
-    hasQa,
-    hasConflicts,
-    dryRun,
-  });
 
   return { prMetadata };
 }
@@ -719,49 +751,58 @@ async function handleConflict({
   hasQa,
   hasConflicts,
   prMetadata,
+  contextLinks,
 }: any) {
   if (!prSummary) {
-    await logStateSummary('conflict', {
-      issue,
-      issueLabels,
+    await renderAndWriteTaskTemplate(
+      'conflict',
+      {
+        issue,
+        issueLabels,
+        paths,
+        prSummary: null,
+        prMetadata,
+        comments: issueComments,
+        hasTask: dryRun ? hasTask : true,
+        hasPlan,
+        hasQa,
+        hasConflicts,
+        dryRun,
+        extras: { contextLinks },
+      },
       paths,
-      prSummary: null,
-      prMetadata,
-      comments: issueComments,
-      hasTask,
-      hasPlan,
-      hasQa,
-      hasConflicts,
-      dryRun,
-    });
+      { dryRun, writeTask: true },
+    );
     logInfo('Conflict stage reached but PR missing; nothing to record.');
     return;
   }
 
-  await logStateSummary('conflict', {
-    issue,
-    issueLabels,
-    paths,
-    prSummary,
-    prMetadata,
-    comments: issueComments,
-    hasTask,
-    hasPlan,
-    hasQa,
-    hasConflicts,
-    dryRun,
-  });
-
   await ensureGitBranch(prSummary.headRef, prSummary.baseRef, { dryRun });
-  const entries = [
-    `- Conflict detected for head **${prSummary.headRef}** against base **${prSummary.baseRef}**.`,
-    `  - Mergeable state: ${prSummary.mergeableState}`,
-    `  - Resolve locally then re-run \`pnpm agent ${issue.number}\`.`,
-  ];
-  const updated = await appendToSection(paths.task, { heading: 'Conflicts', entries });
-  if (updated) {
-    await commitIfChanged(paths.task, `docs: log conflicts for issue #${issue.number}`, { dryRun });
-    await pushBranch(prSummary.headRef, { dryRun });
+
+  const { wrote } = await renderAndWriteTaskTemplate(
+    'conflict',
+    {
+      issue,
+      issueLabels,
+      paths,
+      prSummary,
+      prMetadata,
+      comments: issueComments,
+      hasTask: dryRun ? hasTask : true,
+      hasPlan,
+      hasQa,
+      hasConflicts: true,
+      dryRun,
+      extras: { contextLinks },
+    },
+    paths,
+    { dryRun, writeTask: true },
+  );
+  if (wrote) {
+    const committed = await commitIfChanged(paths.task, taskCommitMessage('conflict', issue.number), { dryRun });
+    if (committed) {
+      await pushBranch(prSummary.headRef, { dryRun });
+    }
   }
 }
 
@@ -785,19 +826,25 @@ async function handleReadyToMerge({
     prSummary = await safeGetPull(octokit, repo, prMetadata.number);
   }
   if (!prSummary) {
-    await logStateSummary('ready-to-merge', {
-      issue,
-      issueLabels,
+    await renderAndWriteTaskTemplate(
+      'ready-to-merge',
+      {
+        issue,
+        issueLabels,
+        paths,
+        prSummary: null,
+        prMetadata,
+        comments: issueComments,
+        hasTask,
+        hasPlan,
+        hasQa,
+        hasConflicts,
+        dryRun,
+        extras: { contextLinks },
+      },
       paths,
-      prSummary: null,
-      prMetadata,
-      comments: issueComments,
-      hasTask,
-      hasPlan,
-      hasQa,
-      hasConflicts,
-      dryRun,
-    });
+      { dryRun, writeTask: true },
+    );
     logInfo('Ready-to-merge stage reached but PR missing.');
     return;
   }
@@ -812,20 +859,31 @@ async function handleReadyToMerge({
     totalUSD: totals.totalUSD.toFixed(2),
   };
 
-  await logStateSummary('ready-to-merge', {
-    issue,
-    issueLabels,
+  const { wrote } = await renderAndWriteTaskTemplate(
+    'ready-to-merge',
+    {
+      issue,
+      issueLabels,
+      paths,
+      prSummary,
+      prMetadata,
+      comments: issueComments,
+      hasTask: dryRun ? hasTask : true,
+      hasPlan,
+      hasQa,
+      hasConflicts,
+      dryRun,
+      extras: { costSummary, contextLinks },
+    },
     paths,
-    prSummary,
-    prMetadata,
-    comments: issueComments,
-    hasTask,
-    hasPlan,
-    hasQa,
-    hasConflicts,
-    dryRun,
-    extras: { costSummary },
-  });
+    { dryRun, writeTask: true },
+  );
+  if (wrote) {
+    const committed = await commitIfChanged(paths.task, taskCommitMessage('ready-to-merge', issue.number), { dryRun });
+    if (committed) {
+      await pushBranch(branch, { dryRun });
+    }
+  }
 
   const totalLine = formatTotalLine(totals);
   await withDryRun(dryRun, 'Append TOTAL to costs.md', async () => {
@@ -1076,20 +1134,41 @@ type StateLogParams = {
 
 const MAX_TEMPLATE_COMMENTS = 10;
 
-async function logStateSummary(state: string, params: StateLogParams): Promise<string | null> {
-  try {
-    const rendered = await renderStateSummary(state, params);
-    logInfo(rendered.trimEnd());
-    return rendered;
-  } catch (error: any) {
-    logWarn(`Failed to render template for state "${state}": ${error.message ?? error}`);
-    return null;
-  }
-}
-
 async function renderStateSummary(state: string, params: StateLogParams): Promise<string> {
   const model = buildStateTemplateModel(params);
   return await renderStateTemplate(state, model);
+}
+
+interface RenderOptions {
+  dryRun: boolean;
+  writeTask?: boolean;
+}
+
+async function renderAndWriteTaskTemplate(
+  state: string,
+  params: StateLogParams,
+  paths: IssuePaths,
+  options: RenderOptions,
+): Promise<{ summary: string; wrote: boolean }> {
+  try {
+    const summary = await renderStateSummary(state, params);
+    logInfo(summary.trimEnd());
+
+    let wrote = false;
+    const shouldWrite = options.writeTask ?? true;
+    if (shouldWrite) {
+      if (options.dryRun) {
+        logDry(`Would update ${paths.task} from "${state}" template`);
+      } else {
+        wrote = await ensureTaskFile(paths, summary);
+      }
+    }
+
+    return { summary, wrote };
+  } catch (error: any) {
+    logWarn(`Failed to render template for state "${state}": ${error?.message ?? error}`);
+    return { summary: '', wrote: false };
+  }
 }
 
 function buildStateTemplateModel(params: StateLogParams): StateTemplateModel {
@@ -1217,6 +1296,26 @@ function filterCommentsSince(comments: any[], since?: string | null): any[] {
     if (!timestamp) return true;
     return timestamp > since;
   });
+}
+
+function taskCommitMessage(state: string, issueNumber: number): string {
+  switch (state) {
+    case 'bootstrap':
+      return `chore: bootstrap issue #${issueNumber}`;
+    case 'plan-proposed':
+      return `docs: refresh task for plan stage #${issueNumber}`;
+    case 'implementation':
+      return `docs: refresh task for implementation stage #${issueNumber}`;
+    case 'in-review':
+      return `docs: refresh task for review stage #${issueNumber}`;
+    case 'conflict':
+      return `docs: refresh task for conflict state #${issueNumber}`;
+    case 'ready-to-merge':
+      return `docs: refresh task for ready-to-merge #${issueNumber}`;
+    case 'idle':
+    default:
+      return `docs: refresh task for issue #${issueNumber}`;
+  }
 }
 
 function branchName(issueNumber: number, slug: string): string {

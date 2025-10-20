@@ -19,7 +19,6 @@
 
 - QA file present: <%= it.flags.hasQa ? 'yes' : 'no' %>
 - QA comment URL: <%- it.metadata && it.metadata.qaCommentUrl ? it.metadata.qaCommentUrl : 'not posted' %>
-
 ### Recent Feedback
 
 <% if (it.comments.length) { %>
@@ -30,6 +29,17 @@
 - _No comments captured for this state._
 <% } %>
 
+### CI Feedback
+
+<% const ciNotes = (it.extras && it.extras.ciNotes) || []; %>
+<% if (ciNotes.length) { %>
+<% ciNotes.forEach(function(note) { %>
+- <%- note %>
+<% }); %>
+<% } else { %>
+- _No CI failures recorded._
+<% } %>
+
 ### Workspace Flags
 
 - Task file present: <%= it.flags.hasTask ? 'yes' : 'no' %>
@@ -37,3 +47,14 @@
 - PR detected: <%= it.flags.hasPr ? 'yes' : 'no' %>
 - Merge conflicts: <%= it.flags.hasConflicts ? 'yes' : 'no' %>
 - Dry run: <%= it.flags.dryRun ? 'yes' : 'no' %>
+
+### Context Links
+
+<% const contextLinks = (it.extras && it.extras.contextLinks) || []; %>
+<% if (contextLinks.length) { %>
+<% contextLinks.forEach(function(link) { %>
+- [<%- link %>](<%- link %>)
+<% }); %>
+<% } else { %>
+- _No context links discovered._
+<% } %>

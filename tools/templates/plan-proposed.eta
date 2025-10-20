@@ -53,3 +53,14 @@ _No issue body provided._
 - PR detected: <%= it.flags.hasPr ? 'yes' : 'no' %>
 - Merge conflicts: <%= it.flags.hasConflicts ? 'yes' : 'no' %>
 - Dry run: <%= it.flags.dryRun ? 'yes' : 'no' %>
+
+### Context Links
+
+<% const contextLinks = (it.extras && it.extras.contextLinks) || []; %>
+<% if (contextLinks.length) { %>
+<% contextLinks.forEach(function(link) { %>
+- [<%- link %>](<%- link %>)
+<% }); %>
+<% } else { %>
+- _No context links discovered._
+<% } %>

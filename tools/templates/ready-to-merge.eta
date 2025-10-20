@@ -36,3 +36,14 @@
 <% } else { %>
 - _No final review comments._
 <% } %>
+
+### Context Links
+
+<% const contextLinks = (it.extras && it.extras.contextLinks) || []; %>
+<% if (contextLinks.length) { %>
+<% contextLinks.forEach(function(link) { %>
+- [<%- link %>](<%- link %>)
+<% }); %>
+<% } else { %>
+- _No context links discovered._
+<% } %>
