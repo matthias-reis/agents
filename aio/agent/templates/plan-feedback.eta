@@ -25,6 +25,7 @@ __<%= it.issue.title %>__
 Labels: <%= it.issue.labels.length > 0 ? it.issue.labels.map(label=> label.name).join(', ') : '—' %>
 
 <% if (it.comments && it.comments.length > 0) { %>
+
 ## Feedback Comments
 
 <% it.comments.forEach(comment => { %>
@@ -32,17 +33,13 @@ __Comment on <%= comment.path %> line <%= comment.line %>__
 
 <%= comment.body %>
 
-```diff
-<%~ comment.diff_hunk %>
-```
-
 <% }) %>
 <% } %>
 
 <% if (it.pullRequest) { %>
 
 ## Pull Request Information
-- **PR ID**: #<%= it.pullRequest.number %>
-- **Title**: <%= it.pullRequest.title %>
-- **State**: <%= it.pullRequest.state %>
+- **PR ID**: `#<%= it.pullRequest.number %>`
+- **Title**: `<%= it.pullRequest.title %>`
+- **State**: `<%= it.pullRequest.state %>`
 <% } %>
