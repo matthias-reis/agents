@@ -154,11 +154,11 @@ export class AIOEngine {
     this.templateService.writeCostFile(data.workPackageName, costContent);
 
     // Always commit and push the bootstrap files to create commits for PR
-    await this.commitAndPush(data, 'Initial bootstrap setup');
+    await this.commitAndPush(data, "Initial bootstrap setup");
 
     // Create PR
     const pr = await this.githubService.createPullRequest(
-      `#${data.issue.number}: ${data.issue.title}`,
+      `agent(#${data.issue.number}): ${data.issue.title}`,
       `Closes #${data.issue.number}`,
       data.workPackageName,
       "main",
