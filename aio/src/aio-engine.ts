@@ -214,7 +214,7 @@ export class AIOEngine {
 
     // Create or override TASK.md
     const templateData = this.createTemplateData(data);
-    const taskContent = this.templateService.renderPlanFeedback(templateData);
+    const taskContent = this.templateService.renderPlanApproved(templateData);
     this.templateService.writeTaskFile(data.workPackageName, taskContent);
 
     await this.commitAndPush(data, "Plan approved - ready for implementation");

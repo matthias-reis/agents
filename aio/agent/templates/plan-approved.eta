@@ -1,6 +1,4 @@
-<%= JSON.stringify(it, null, 2) %>
-
-# CurrentTask: work on Feedback
+# CurrentTask: Implement Task
 
 - **ID**: `#<%= it.issue.number %>`
 - **Title**: `<%= it.issue.title %>`
@@ -8,24 +6,15 @@
 
 ## Task Description
 
-- Read the text below, especially the "Feedback Comments" section.
-- Update the existing implementation plan in `<%= it.workPackageName %>/PLAN.md` based on the feedback provided.
-- Ensure that all relevant feedback is addressed in the updated plan.
-- Append a line to `<%= it.workPackageName %>/cost.md` with:
+- A detailed plan has already been worked out in a previous step. Your task is to implement everything specified in `<%= it.workPackageName %>/PLAN.md`.
+- Modify only code/docs/tests required by the plan.
+- Create or update `<%= it.workPackageName %>/qa.md` with a consistent but minimal QA checklist / test plan.
+- After the implementation, append a line to `<%= it.workPackageName %>/cost.md` with:
   - timestamp (UTC), provider, model, input_tokens, output_tokens, total_tokens, estUSD, headers snapshot (remaining/reset if available).
-- Do **not** modify other files.
+- Do **not** change `PLAN.md`.
 - create a local commit if possible. If not propose a commit statement including message.
 
-## Issue Summary
-
-__<%= it.issue.title %>__
-
-<%= it.issue.body || 'No description provided' %>
-
-Labels: <%= it.issue.labels.length > 0 ? it.issue.labels.map(label=> label.name).join(', ') : '—' %>
-
 <% if (it.comments && it.comments.length > 0) { %>
-
 ## Feedback Comments
 
 <% it.comments.forEach(comment => { %>
