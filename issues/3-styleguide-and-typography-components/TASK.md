@@ -35,11 +35,8 @@ Labels: plan-proposed, locked
 
 __Comment on issues/3-styleguide-and-typography-components/PLAN.md line 18__
 ... and also light weight.
-
 __Comment on issues/3-styleguide-and-typography-components/PLAN.md line 23__
 Specify how to do that. What are optimal line lengths? What should be used from tailwind?.
-
-
 
 ## Pull Request Information
 - **PR ID**: `#8`
