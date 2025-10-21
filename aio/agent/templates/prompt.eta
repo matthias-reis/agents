@@ -1,10 +1,14 @@
-## Task Update: <%= it.issue.title %>
 
-**Work Package**: <%= it.workPackageName %>
-**Issue**: #<%= it.issue.number %>
+
+Successfully created task for
+[ #<%= it.issue.number %> ] <%= it.issue.title %>
 
 <% if (it.pullRequest) { %>
 **Pull Request**: #<%= it.pullRequest.number %>
 <% } %>
 
-Your task files have been updated in the `<%= it.workPackageName %>` directory. Please review the TASK.md file and proceed with the implementation.
+`./<%= it.workPackageName %>/TASK.md` written.
+
+You can now copy and place the prompt in your favourite AI Agent:
+
+Work on the current task description under `./<%= it.workPackageName %>/TASK.md`.

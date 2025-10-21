@@ -1,8 +1,8 @@
 # Current Task: Create Plan
 
-- **ID**: #<%= it.issue.number %>
-- **Title**: <%= it.issue.title %>
-- **Workpackage Name**: <%= it.workPackageName %>
+- **ID**: `#<%= it.issue.number %>`
+- **Title**: `<%= it.issue.title %>`
+- **Workpackage Name**: `<%= it.workPackageName %>`
 
 ## Task description
 
