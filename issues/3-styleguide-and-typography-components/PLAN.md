@@ -15,12 +15,12 @@ This plan implements a typography component system with Google Fonts integration
 - **Component Creation**: Build typography components with consistent styling:
   - H1, H2 (headline components using ExtraBold weight)
   - P (paragraph component using Light weight as default)
-  - UL, OL, LI (list components with appropriate spacing)
+  - UL, OL, LI (list components with appropriate spacing and Light weight font)
 - **Styling Standards**: Implement balanced vertical spacing and readable typography scales
 
 ### Part 2: Styleguide Page
 - **Route Creation**: New `/styleguide` page under `web/src/routes/styleguide.tsx`
-- **Layout**: Centered content box with optimal line lengths for readability
+- **Layout**: Centered content box with optimal line lengths for readability (45-75 characters per line using Tailwind's `max-w-2xl` or `max-w-3xl` classes)
 - **Component Showcase**: Display all typography components with examples
 - **Navigation**: Add styleguide link to existing navigation in `web/src/app.tsx`
 
@@ -63,13 +63,13 @@ web/
 2. **Typography Components**
    - [ ] All components (H1, H2, P, UL, OL, LI) implemented with consistent interfaces
    - [ ] Components use Urbanist font family
-   - [ ] Headlines use ExtraBold weight, body text uses Light weight
+   - [ ] Headlines use ExtraBold weight, body text and lists use Light weight
    - [ ] Balanced vertical spacing implemented
    - [ ] Components accept children and className props
 
 3. **Styleguide Page**
    - [ ] `/styleguide` route accessible and renders correctly
-   - [ ] Centered content layout with readable line lengths
+   - [ ] Centered content layout with readable line lengths (45-75 characters per line using `max-w-2xl` with responsive padding)
    - [ ] All typography components displayed with sample content
    - [ ] Navigation link added to main app header
    - [ ] Page follows existing dark theme styling
