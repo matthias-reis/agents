@@ -1,0 +1,31 @@
+# Current Task: Create Plan
+
+- **ID**: #3- **Title**: Styleguide and Typography Components- **Workpackage Name**: issues/3-styleguide-and-typography-components
+## Task description
+
+- Read the **Issue Summary** below and produce a detailed implementation plan.
+- Write a single Markdown file: `/PLAN.md`.
+- Include: Summary, Scope, Out-of-scope, File/dir map, Acceptance Criteria, Test Plan, Risks, Rollback, CI updates, Docs updates.
+- Link to SoT docs instead of copying content.
+- In case of architectural changes or added dependencies, consider an addition to the ADR and mention it in the `PLAN.md` docs update section
+- Append a line to `/cost.md` with:
+  - timestamp (UTC), provider, model, input_tokens, output_tokens, total_tokens, estUSD, headers snapshot (remaining/reset if available).
+- Do **not** modify other files.
+- create a local commit if possible. If not propose a commit statement including message.
+
+## Issue Summary
+
+__Styleguide and Typography Components__
+
+We need a set of common components that are shared throughout all site sections. This ticket is meant to prepare the system for this and add the first components.
+
+### Part 1: Components (for Typography)
+
+- Include the font &quot;Urbanist&quot; in the tailwind setup using Google Fonts. (https://fonts.google.com/specimen/Urbanist)
+- Create the following components: H1, H2, P, UL, OL, LI with appropriate Interface using the font in Light as the default and ExtraBold as the bold and headline style. Also consider enough and balanced top and bottom spacing.
+
+### Part 2: Preview Page
+
+Create a page under the path `/styleguide` and add these components for reference and review. This page should have a centered content box with suitable paddings. The box should have a sane size for readable line lengths.
+
+Labels: ready-for-agent
