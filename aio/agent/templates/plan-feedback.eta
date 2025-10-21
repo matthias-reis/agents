@@ -29,10 +29,8 @@ Labels: <%= it.issue.labels.length > 0 ? it.issue.labels.map(label=> label.name)
 <% it.comments.forEach(comment => { %>
 __Comment on <%= comment.path %> line <%= comment.line %>__
 <%= comment.body %>.
-
 <% }) %>
 <% } %>
-
 <% if (it.pullRequest) { %>
 
 ## Pull Request Information
