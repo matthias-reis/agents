@@ -14,14 +14,7 @@
 - Do **not** change `PLAN.md`.
 - create a local commit if possible. If not propose a commit statement including message.
 
-<% if (it.comments && it.comments.length > 0) { %>
-## Feedback Comments
-
-<% it.comments.forEach(comment => { %>
-__Comment on <%= comment.path %> line <%= comment.line %>__
-<%= comment.body %>.
-<% }) %>
-<% } %>
+<%~ include("./comments.eta") %>
 <% if (it.pullRequest) { %>
 
 ## Pull Request Information

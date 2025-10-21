@@ -117,10 +117,10 @@
     },
     &quot;body&quot;: &quot;Closes #3&quot;,
     &quot;created_at&quot;: &quot;2025-10-21T12:25:55Z&quot;,
-    &quot;updated_at&quot;: &quot;2025-10-21T18:35:41Z&quot;,
+    &quot;updated_at&quot;: &quot;2025-10-21T18:37:58Z&quot;,
     &quot;closed_at&quot;: null,
     &quot;merged_at&quot;: null,
-    &quot;merge_commit_sha&quot;: &quot;48c874cf9ff93e32410c33edafab468938422a0c&quot;,
+    &quot;merge_commit_sha&quot;: &quot;546a7c89c9c80db2aee1ccf3e33c69eb25e65e46&quot;,
     &quot;assignee&quot;: null,
     &quot;assignees&quot;: [],
     &quot;requested_reviewers&quot;: [],
@@ -132,11 +132,11 @@
     &quot;review_comments_url&quot;: &quot;https://api.github.com/repos/matthias-reis/agents/pulls/8/comments&quot;,
     &quot;review_comment_url&quot;: &quot;https://api.github.com/repos/matthias-reis/agents/pulls/comments{/number}&quot;,
     &quot;comments_url&quot;: &quot;https://api.github.com/repos/matthias-reis/agents/issues/8/comments&quot;,
-    &quot;statuses_url&quot;: &quot;https://api.github.com/repos/matthias-reis/agents/statuses/24f8297edf33069bdf36e00ba8a38201ff0aa6b5&quot;,
+    &quot;statuses_url&quot;: &quot;https://api.github.com/repos/matthias-reis/agents/statuses/f86fbf8c27c30151cb078854ad4af87f7c54f12d&quot;,
     &quot;head&quot;: {
       &quot;label&quot;: &quot;matthias-reis:issues/3-styleguide-and-typography-components&quot;,
       &quot;ref&quot;: &quot;issues/3-styleguide-and-typography-components&quot;,
-      &quot;sha&quot;: &quot;24f8297edf33069bdf36e00ba8a38201ff0aa6b5&quot;,
+      &quot;sha&quot;: &quot;f86fbf8c27c30151cb078854ad4af87f7c54f12d&quot;,
       &quot;user&quot;: {
         &quot;login&quot;: &quot;matthias-reis&quot;,
         &quot;id&quot;: 4521923,
@@ -227,7 +227,7 @@
         &quot;deployments_url&quot;: &quot;https://api.github.com/repos/matthias-reis/agents/deployments&quot;,
         &quot;created_at&quot;: &quot;2025-10-18T12:26:24Z&quot;,
         &quot;updated_at&quot;: &quot;2025-10-21T12:28:55Z&quot;,
-        &quot;pushed_at&quot;: &quot;2025-10-21T18:35:40Z&quot;,
+        &quot;pushed_at&quot;: &quot;2025-10-21T18:37:57Z&quot;,
         &quot;git_url&quot;: &quot;git://github.com/matthias-reis/agents.git&quot;,
         &quot;ssh_url&quot;: &quot;git@github.com:matthias-reis/agents.git&quot;,
         &quot;clone_url&quot;: &quot;https://github.com/matthias-reis/agents.git&quot;,
@@ -360,7 +360,7 @@
         &quot;deployments_url&quot;: &quot;https://api.github.com/repos/matthias-reis/agents/deployments&quot;,
         &quot;created_at&quot;: &quot;2025-10-18T12:26:24Z&quot;,
         &quot;updated_at&quot;: &quot;2025-10-21T12:28:55Z&quot;,
-        &quot;pushed_at&quot;: &quot;2025-10-21T18:35:40Z&quot;,
+        &quot;pushed_at&quot;: &quot;2025-10-21T18:37:57Z&quot;,
         &quot;git_url&quot;: &quot;git://github.com/matthias-reis/agents.git&quot;,
         &quot;ssh_url&quot;: &quot;git@github.com:matthias-reis/agents.git&quot;,
         &quot;clone_url&quot;: &quot;https://github.com/matthias-reis/agents.git&quot;,
@@ -422,7 +422,7 @@
         &quot;href&quot;: &quot;https://api.github.com/repos/matthias-reis/agents/pulls/8/commits&quot;
       },
       &quot;statuses&quot;: {
-        &quot;href&quot;: &quot;https://api.github.com/repos/matthias-reis/agents/statuses/24f8297edf33069bdf36e00ba8a38201ff0aa6b5&quot;
+        &quot;href&quot;: &quot;https://api.github.com/repos/matthias-reis/agents/statuses/f86fbf8c27c30151cb078854ad4af87f7c54f12d&quot;
       }
     },
     &quot;author_association&quot;: &quot;OWNER&quot;,
@@ -436,8 +436,8 @@
     &quot;comments&quot;: 0,
     &quot;review_comments&quot;: 2,
     &quot;maintainer_can_modify&quot;: false,
-    &quot;commits&quot;: 18,
-    &quot;additions&quot;: 1157,
+    &quot;commits&quot;: 19,
+    &quot;additions&quot;: 1204,
     &quot;deletions&quot;: 158,
     &quot;changed_files&quot;: 12
   },
@@ -628,27 +628,27 @@
   ],
   &quot;checks&quot;: [
     {
-      &quot;id&quot;: 53306680318,
+      &quot;id&quot;: 53306867448,
       &quot;name&quot;: &quot;tests&quot;,
-      &quot;node_id&quot;: &quot;CR_kwDOQEz9Ls8AAAAMaVNj_g&quot;,
-      &quot;head_sha&quot;: &quot;24f8297edf33069bdf36e00ba8a38201ff0aa6b5&quot;,
-      &quot;external_id&quot;: &quot;ede81839-5588-5812-b293-78731c6363e0&quot;,
-      &quot;url&quot;: &quot;https://api.github.com/repos/matthias-reis/agents/check-runs/53306680318&quot;,
-      &quot;html_url&quot;: &quot;https://github.com/matthias-reis/agents/actions/runs/18694017757/job/53306680318&quot;,
-      &quot;details_url&quot;: &quot;https://github.com/matthias-reis/agents/actions/runs/18694017757/job/53306680318&quot;,
+      &quot;node_id&quot;: &quot;CR_kwDOQEz9Ls8AAAAMaVY--A&quot;,
+      &quot;head_sha&quot;: &quot;f86fbf8c27c30151cb078854ad4af87f7c54f12d&quot;,
+      &quot;external_id&quot;: &quot;8117ca24-00b6-5d15-b168-a180993fe96b&quot;,
+      &quot;url&quot;: &quot;https://api.github.com/repos/matthias-reis/agents/check-runs/53306867448&quot;,
+      &quot;html_url&quot;: &quot;https://github.com/matthias-reis/agents/actions/runs/18694078033/job/53306867448&quot;,
+      &quot;details_url&quot;: &quot;https://github.com/matthias-reis/agents/actions/runs/18694078033/job/53306867448&quot;,
       &quot;status&quot;: &quot;completed&quot;,
       &quot;conclusion&quot;: &quot;success&quot;,
-      &quot;started_at&quot;: &quot;2025-10-21T18:36:33Z&quot;,
-      &quot;completed_at&quot;: &quot;2025-10-21T18:36:57Z&quot;,
+      &quot;started_at&quot;: &quot;2025-10-21T18:38:44Z&quot;,
+      &quot;completed_at&quot;: &quot;2025-10-21T18:39:10Z&quot;,
       &quot;output&quot;: {
         &quot;title&quot;: null,
         &quot;summary&quot;: null,
         &quot;text&quot;: null,
         &quot;annotations_count&quot;: 0,
-        &quot;annotations_url&quot;: &quot;https://api.github.com/repos/matthias-reis/agents/check-runs/53306680318/annotations&quot;
+        &quot;annotations_url&quot;: &quot;https://api.github.com/repos/matthias-reis/agents/check-runs/53306867448/annotations&quot;
       },
       &quot;check_suite&quot;: {
-        &quot;id&quot;: 48100057595
+        &quot;id&quot;: 48100226232
       },
       &quot;app&quot;: {
         &quot;id&quot;: 15368,
@@ -746,7 +746,7 @@
           &quot;number&quot;: 8,
           &quot;head&quot;: {
             &quot;ref&quot;: &quot;issues/3-styleguide-and-typography-components&quot;,
-            &quot;sha&quot;: &quot;24f8297edf33069bdf36e00ba8a38201ff0aa6b5&quot;,
+            &quot;sha&quot;: &quot;f86fbf8c27c30151cb078854ad4af87f7c54f12d&quot;,
             &quot;repo&quot;: {
               &quot;id&quot;: 1078787374,
               &quot;url&quot;: &quot;https://api.github.com/repos/matthias-reis/agents&quot;,
@@ -766,27 +766,27 @@
       ]
     },
     {
-      &quot;id&quot;: 53306622859,
+      &quot;id&quot;: 53306821337,
       &quot;name&quot;: &quot;build&quot;,
-      &quot;node_id&quot;: &quot;CR_kwDOQEz9Ls8AAAAMaVKDiw&quot;,
-      &quot;head_sha&quot;: &quot;24f8297edf33069bdf36e00ba8a38201ff0aa6b5&quot;,
-      &quot;external_id&quot;: &quot;a522956f-0fd2-54da-ac7b-a7e1e6b7677b&quot;,
-      &quot;url&quot;: &quot;https://api.github.com/repos/matthias-reis/agents/check-runs/53306622859&quot;,
-      &quot;html_url&quot;: &quot;https://github.com/matthias-reis/agents/actions/runs/18694017757/job/53306622859&quot;,
-      &quot;details_url&quot;: &quot;https://github.com/matthias-reis/agents/actions/runs/18694017757/job/53306622859&quot;,
+      &quot;node_id&quot;: &quot;CR_kwDOQEz9Ls8AAAAMaVWK2Q&quot;,
+      &quot;head_sha&quot;: &quot;f86fbf8c27c30151cb078854ad4af87f7c54f12d&quot;,
+      &quot;external_id&quot;: &quot;647da941-d85a-5ba5-bb64-ece16f1df641&quot;,
+      &quot;url&quot;: &quot;https://api.github.com/repos/matthias-reis/agents/check-runs/53306821337&quot;,
+      &quot;html_url&quot;: &quot;https://github.com/matthias-reis/agents/actions/runs/18694078033/job/53306821337&quot;,
+      &quot;details_url&quot;: &quot;https://github.com/matthias-reis/agents/actions/runs/18694078033/job/53306821337&quot;,
       &quot;status&quot;: &quot;completed&quot;,
       &quot;conclusion&quot;: &quot;success&quot;,
-      &quot;started_at&quot;: &quot;2025-10-21T18:35:55Z&quot;,
-      &quot;completed_at&quot;: &quot;2025-10-21T18:36:24Z&quot;,
+      &quot;started_at&quot;: &quot;2025-10-21T18:38:10Z&quot;,
+      &quot;completed_at&quot;: &quot;2025-10-21T18:38:36Z&quot;,
       &quot;output&quot;: {
         &quot;title&quot;: null,
         &quot;summary&quot;: null,
         &quot;text&quot;: null,
         &quot;annotations_count&quot;: 0,
-        &quot;annotations_url&quot;: &quot;https://api.github.com/repos/matthias-reis/agents/check-runs/53306622859/annotations&quot;
+        &quot;annotations_url&quot;: &quot;https://api.github.com/repos/matthias-reis/agents/check-runs/53306821337/annotations&quot;
       },
       &quot;check_suite&quot;: {
-        &quot;id&quot;: 48100057595
+        &quot;id&quot;: 48100226232
       },
       &quot;app&quot;: {
         &quot;id&quot;: 15368,
@@ -884,7 +884,7 @@
           &quot;number&quot;: 8,
           &quot;head&quot;: {
             &quot;ref&quot;: &quot;issues/3-styleguide-and-typography-components&quot;,
-            &quot;sha&quot;: &quot;24f8297edf33069bdf36e00ba8a38201ff0aa6b5&quot;,
+            &quot;sha&quot;: &quot;f86fbf8c27c30151cb078854ad4af87f7c54f12d&quot;,
             &quot;repo&quot;: {
               &quot;id&quot;: 1078787374,
               &quot;url&quot;: &quot;https://api.github.com/repos/matthias-reis/agents&quot;,
