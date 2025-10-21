@@ -1,3 +1,5 @@
+<%= JSON.stringify(it, null, 2) %>
+
 # CurrentTask: work on Feedback
 
 - **ID**: `#<%= it.issue.number %>`
@@ -24,10 +26,15 @@ Labels: <%= it.issue.labels.length > 0 ? it.issue.labels.map(label=> label.name)
 
 <% if (it.comments && it.comments.length > 0) { %>
 ## Feedback Comments
+
 <% it.comments.forEach(comment => { %>
-### Comment by <%= comment.user.login %> on <%= comment.created_at %>
+__Comment on <%= comment.path %> line <%= comment.line %>__
 
 <%= comment.body %>
+
+```diff
+<%~ comment.diff_hunk %>
+```
 
 <% }) %>
 <% } %>
