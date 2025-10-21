@@ -1,5 +1,3 @@
-<%= JSON.stringify(it, null, 2) %>
-
 # CurrentTask: work on Feedback
 
 - **ID**: `#<%= it.issue.number %>`
@@ -31,7 +29,7 @@ Labels: <%= it.issue.labels.length > 0 ? it.issue.labels.map(label=> label.name)
 <% it.comments.forEach(comment => { %>
 __Comment on <%= comment.path %> line <%= comment.line %>__
 
-<%= comment.body %>
+<%= comment.body %>.
 
 <% }) %>
 <% } %>
