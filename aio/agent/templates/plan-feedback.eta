@@ -1,29 +1,41 @@
-# Task: <%= it.issue.title %>
+# CurrentTask: work on Feedback
 
-## Issue Details
-- **ID**: #<%= it.issue.number %>
-- **Title**: <%= it.issue.title %>
-- **Author**: <%= it.issue.user.login %>
+- **ID**: `#<%= it.issue.number %>`
+- **Title**: `<%= it.issue.title %>`
+- **Workpackage Name**: `<%= it.workPackageName %>`
 
-## Description
+## Task Description
+
+- Read the text below, especially the "Feedback Comments" section.
+- Update the existing implementation plan in `<%= it.workPackageName %>/PLAN.md` based on the feedback provided.
+- Ensure that all relevant feedback is addressed in the updated plan.
+- Append a line to `<%= it.workPackageName %>/cost.md` with:
+  - timestamp (UTC), provider, model, input_tokens, output_tokens, total_tokens, estUSD, headers snapshot (remaining/reset if available).
+- Do **not** modify other files.
+- create a local commit if possible. If not propose a commit statement including message.
+
+## Issue Summary
+
+__<%= it.issue.title %>__
+
 <%= it.issue.body || 'No description provided' %>
 
-<% if (it.pullRequest) { %>
-## Pull Request Information
-- **PR ID**: #<%= it.pullRequest.number %>
-- **Title**: <%= it.pullRequest.title %>
-- **State**: <%= it.pullRequest.state %>
-<% } %>
+Labels: <%= it.issue.labels.length > 0 ? it.issue.labels.map(label=> label.name).join(', ') : '—' %>
 
 <% if (it.comments && it.comments.length > 0) { %>
 ## Feedback Comments
 <% it.comments.forEach(comment => { %>
 ### Comment by <%= comment.user.login %> on <%= comment.created_at %>
+
 <%= comment.body %>
 
 <% }) %>
 <% } %>
 
-## Work Package
-- **Name**: <%= it.workPackageName %>
-- **Slug**: <%= it.nameSlug %>
+<% if (it.pullRequest) { %>
+
+## Pull Request Information
+- **PR ID**: #<%= it.pullRequest.number %>
+- **Title**: <%= it.pullRequest.title %>
+- **State**: <%= it.pullRequest.state %>
+<% } %>
