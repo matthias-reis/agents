@@ -1,25 +1,7 @@
-# Current Task: Create Plan
-
-- **ID**: `#3`
-- **Title**: `Styleguide and Typography Components`
-- **Workpackage Name**: `issues/3-styleguide-and-typography-components`
-
-## Task description
-
-- Read the **Issue Summary** below and produce a detailed implementation plan.
-- Write a single Markdown file: `issues/3-styleguide-and-typography-components/PLAN.md`.
-- Include: Summary, Scope, Out-of-scope, File/dir map, Acceptance Criteria, Test Plan, Risks, Rollback, CI updates, Docs updates.
-- Link to SoT docs instead of copying content.
-- In case of architectural changes or added dependencies, consider an addition to the ADR and mention it in the `PLAN.md` docs update section
-- Append a line to `issues/3-styleguide-and-typography-components/cost.md` with:
-  - timestamp (UTC), provider, model, input_tokens, output_tokens, total_tokens, estUSD, headers snapshot (remaining/reset if available).
-- Do **not** modify other files.
-- create a local commit if possible. If not propose a commit statement including message.
-
-## Issue Summary
-
-**Styleguide and Typography Components**
-
+# Task: Styleguide and Typography Components
+## Issue Details
+- **ID**: #3- **Title**: Styleguide and Typography Components- **Author**: matthias-reis
+## Description
 We need a set of common components that are shared throughout all site sections. This ticket is meant to prepare the system for this and add the first components.
 
 ### Part 1: Components (for Typography)
@@ -31,4 +13,11 @@ We need a set of common components that are shared throughout all site sections.
 
 Create a page under the path `/styleguide` and add these components for reference and review. This page should have a centered content box with suitable paddings. The box should have a sane size for readable line lengths.
 
-Labels: ready-for-agent
+## Pull Request Information
+- **PR ID**: #8- **Title**: agent(#3): Styleguide and Typography Components- **State**: open
+## Feedback Comments
+### Comment by matthias-reis on 2025-10-21T12:38:36Z... and also light weight
+### Comment by matthias-reis on 2025-10-21T12:39:54ZSpecify how to do that. What are optimal line lengths? What should be used from tailwind?
+
+## Work Package
+- **Name**: issues/3-styleguide-and-typography-components- **Slug**: styleguide-and-typography-components
