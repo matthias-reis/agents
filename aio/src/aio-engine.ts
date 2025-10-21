@@ -45,17 +45,20 @@ export class AIOEngine {
       case "BOOTSTRAP":
         await this.handleBootstrap(workPackageData);
         break;
-      case "PLAN-PROPOSED":
-        await this.handlePlanProposed(workPackageData);
+      case "PLAN-FEEDBACK":
+        await this.handlePlanFeedback(workPackageData);
         break;
       case "PLAN-APPROVED":
         await this.handlePlanApproved(workPackageData);
         break;
-      case "REVIEW":
-        await this.handleReview(workPackageData);
+      case "REVIEW-FEEDBACK":
+        await this.handleReviewFeedback(workPackageData);
         break;
       case "READY-TO-MERGE":
         await this.handleReadyToMerge(workPackageData);
+        break;
+      default:
+        await this.handleUndetermined(workPackageData);
         break;
     }
   }
@@ -115,10 +118,10 @@ export class AIOEngine {
       return "READY-TO-MERGE";
     }
 
-    if (labels.includes("in-review") && labels.includes("locked")) {
+    if (labels.includes("in-review")) {
       const qaPath = join(process.cwd(), data.workPackageName, "qa.md");
       if (existsSync(qaPath)) {
-        return "REVIEW";
+        return "REVIEW-FEEDBACK";
       }
     }
 
@@ -127,18 +130,15 @@ export class AIOEngine {
     }
 
     if (labels.includes("plan-proposed") && data.comments.length > 0) {
-      return "PLAN-PROPOSED";
+      return "PLAN-FEEDBACK";
     }
 
     if (labels.includes("ready-for-agent")) {
       return "BOOTSTRAP";
     }
 
-    // Default to BOOTSTRAP if no labels match but issue exists
-    console.log(
-      `No matching state found for issue #${data.issue.number}, defaulting to BOOTSTRAP`
-    );
-    return "BOOTSTRAP";
+    // Default to UNDETERMINED which calls a noop if no labels match but issue exists
+    return "UNDETERMINED";
   }
 
   private async handleBootstrap(data: WorkPackageData): Promise<void> {
@@ -187,10 +187,12 @@ export class AIOEngine {
     this.outputPrompt(templateData);
   }
 
-  private async handlePlanProposed(data: WorkPackageData): Promise<void> {
+  private async handlePlanFeedback(data: WorkPackageData): Promise<void> {
     const planPath = join(process.cwd(), data.workPackageName, "PLAN.md");
     if (!existsSync(planPath)) {
-      console.log("PLAN.md does not exist. Bailing out.");
+      console.log(
+        "PLAN.md does not exist. Please look at the Github issue again and assign the label 'ready-for-agent' if needed."
+      );
       return;
     }
 
@@ -221,7 +223,7 @@ export class AIOEngine {
     this.outputPrompt(templateData);
   }
 
-  private async handleReview(data: WorkPackageData): Promise<void> {
+  private async handleReviewFeedback(data: WorkPackageData): Promise<void> {
     const qaPath = join(process.cwd(), data.workPackageName, "qa.md");
     const qaContent = readFileSync(qaPath, "utf-8");
 
@@ -276,6 +278,13 @@ export class AIOEngine {
     await this.githubService.mergePullRequest(data.pullRequest.number);
 
     console.log("You successfully completed this task! Congrats!");
+  }
+
+  private async handleUndetermined(data: WorkPackageData): Promise<void> {
+    console.log(`Issue #${data.issue.number} is in an undetermined state.`);
+    console.log(
+      "If you want an AI Agent to work on it, please add the label 'ready-for-agent' to the Github Ticket and re-run the script!"
+    );
   }
 
   private createNameSlug(title: string): string {

@@ -3,7 +3,7 @@ export interface GitHubIssue {
   number: number;
   title: string;
   body: string | null;
-  state: 'open' | 'closed';
+  state: "open" | "closed";
   labels: Array<{
     id: number;
     name: string;
@@ -20,7 +20,7 @@ export interface GitHubPullRequest {
   number: number;
   title: string;
   body: string | null;
-  state: 'open' | 'closed' | 'merged';
+  state: "open" | "closed" | "merged";
   labels: Array<{
     id: number;
     name: string;
@@ -50,8 +50,16 @@ export interface GitHubComment {
 export interface GitHubCheck {
   id: number;
   name: string;
-  status: 'queued' | 'in_progress' | 'completed';
-  conclusion: 'success' | 'failure' | 'neutral' | 'cancelled' | 'skipped' | 'timed_out' | 'action_required' | null;
+  status: "queued" | "in_progress" | "completed";
+  conclusion:
+    | "success"
+    | "failure"
+    | "neutral"
+    | "cancelled"
+    | "skipped"
+    | "timed_out"
+    | "action_required"
+    | null;
   output?: {
     title: string;
     summary: string;
@@ -71,7 +79,13 @@ export interface PRMetadata {
   id: number;
 }
 
-export type AIOState = 'BOOTSTRAP' | 'PLAN-PROPOSED' | 'PLAN-APPROVED' | 'REVIEW' | 'READY-TO-MERGE';
+export type AIOState =
+  | "BOOTSTRAP"
+  | "PLAN-FEEDBACK"
+  | "PLAN-APPROVED"
+  | "REVIEW-FEEDBACK"
+  | "READY-TO-MERGE"
+  | "UNDETERMINED";
 
 export interface TemplateData {
   issue: GitHubIssue;
