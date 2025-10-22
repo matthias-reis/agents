@@ -33,6 +33,10 @@ Labels: plan-proposed
 
 ## Feedback Comments
 
+Just another comment..
+... and also light weight.
+Specify how to do that. What are optimal line lengths? What should be used from tailwind?.
+
 
 
 ## Pull Request Information

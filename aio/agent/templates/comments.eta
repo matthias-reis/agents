@@ -2,4 +2,8 @@
 <% if (it.comments && it.comments.length > 0) { %>
 ## Feedback Comments
 
+<% it.comments.forEach(comment => {%>
+<%= comment.body %>.
+<% }) %>
+
 <% } %>
