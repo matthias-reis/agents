@@ -14,11 +14,9 @@
 - Do **not** change `PLAN.md`.
 - create a local commit if possible. If not propose a commit statement including message.
 
-<%~ include("./comments.eta") %>
-<% if (it.pullRequest) { %>
+<%~ include("./comments.eta", it) %>
 
 ## Pull Request Information
 - **PR ID**: `#<%= it.pullRequest.number %>`
 - **Title**: `<%= it.pullRequest.title %>`
 - **State**: `<%= it.pullRequest.state %>`
-<% } %>
