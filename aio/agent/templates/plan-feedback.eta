@@ -1,4 +1,4 @@
-# CurrentTask: Work on Feedback
+# CurrentTask: Work on Feedback for Plan
 
 - **ID**: `#<%= it.issue.number %>`
 - **Title**: `<%= it.issue.title %>`

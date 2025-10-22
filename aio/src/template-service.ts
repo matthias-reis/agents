@@ -48,8 +48,8 @@ export class TemplateService {
     return this.eta.renderString(template, data);
   }
 
-  renderCiFailed(data: TemplateData): string {
-    const template = this.readTemplate("ci-failed.eta");
+  renderReviewFeedback(data: TemplateData): string {
+    const template = this.readTemplate("review-feedback.eta");
     return this.eta.renderString(template, data);
   }
 

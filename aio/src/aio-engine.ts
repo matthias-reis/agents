@@ -154,7 +154,7 @@ export class AIOEngine {
     this.templateService.writeCostFile(data.workPackageName, costContent);
 
     // Always commit and push the bootstrap files to create commits for PR
-    await this.commitAndPush(data, "Initial bootstrap setup");
+    await this.commitAndPush(data, "chore(aio): bootstrapping ai work package");
 
     // Create PR
     const pr = await this.githubService.createPullRequest(
@@ -201,7 +201,10 @@ export class AIOEngine {
     const taskContent = this.templateService.renderPlanFeedback(templateData);
     this.templateService.writeTaskFile(data.workPackageName, taskContent);
 
-    await this.commitAndPush(data, "Update task with plan feedback");
+    await this.commitAndPush(
+      data,
+      "chore(aio): update task with plan feedback"
+    );
     this.outputPrompt(templateData);
   }
 
@@ -219,38 +222,26 @@ export class AIOEngine {
     const taskContent = this.templateService.renderPlanApproved(templateData);
     this.templateService.writeTaskFile(data.workPackageName, taskContent);
 
-    await this.commitAndPush(data, "Plan approved - ready for implementation");
+    await this.commitAndPush(
+      data,
+      "chore(aio): update task for for implementation"
+    );
     this.outputPrompt(templateData);
   }
 
   private async handleReviewFeedback(data: WorkPackageData): Promise<void> {
     const qaPath = join(process.cwd(), data.workPackageName, "qa.md");
     const qaContent = readFileSync(qaPath, "utf-8");
+    await this.githubService.addCommentToIssue(data.issue.number, qaContent);
 
-    // Check CI status
-    const hasFailedChecks = data.checks.some(
-      (check) => check.conclusion === "failure"
-    );
+    const templateData = this.createTemplateData(data);
+    const taskContent = this.templateService.renderReviewFeedback(templateData);
+    this.templateService.writeTaskFile(data.workPackageName, taskContent);
 
-    if (hasFailedChecks) {
-      // CI is red - create task with CI failed template
-      const templateData = this.createTemplateData(data);
-      const taskContent = this.templateService.renderCiFailed(templateData);
-      this.templateService.writeTaskFile(data.workPackageName, taskContent);
-
-      await this.commitAndPush(data, "CI failed - fix required");
-      this.outputPrompt(templateData);
-    } else {
-      // CI is green - remove locked label and post QA comment
-      await this.githubService.removeLabelFromIssue(
-        data.issue.number,
-        "locked"
-      );
-      await this.githubService.addCommentToIssue(data.issue.number, qaContent);
-
-      const templateData = this.createTemplateData(data, qaContent);
-      console.log(this.templateService.renderQa(templateData));
-    }
+    await this.commitAndPush(data, "chore(aio): report fixes required");
+    this.outputPrompt(templateData);
+    // CI is green - remove locked label and post QA comment
+    await this.githubService.removeLabelFromIssue(data.issue.number, "locked");
   }
 
   private async handleReadyToMerge(data: WorkPackageData): Promise<void> {
