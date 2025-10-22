@@ -241,7 +241,14 @@ export class AIOEngine {
     await this.commitAndPush(data, "chore(aio): report fixes required");
     this.outputPrompt(templateData);
     // CI is green - remove locked label and post QA comment
-    await this.githubService.removeLabelFromIssue(data.issue.number, "locked");
+    try {
+      await this.githubService.removeLabelFromIssue(
+        data.issue.number,
+        "locked"
+      );
+    } catch (error) {
+      // noop - continue if label removal fails
+    }
   }
 
   private async handleReadyToMerge(data: WorkPackageData): Promise<void> {
