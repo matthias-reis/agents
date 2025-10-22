@@ -30,6 +30,11 @@ We need a set of common components that are shared throughout all site sections.
 Create a page under the path `/styleguide` and add these components for reference and review. This page should have a centered content box with suitable paddings. The box should have a sane size for readable line lengths.
 
 Labels: plan-proposed
+
+## Feedback Comments
+
+
+
 ## Pull Request Information
 
 - **PR ID**: `#8`

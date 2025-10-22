@@ -22,6 +22,9 @@ __<%= it.issue.title %>__
 
 Labels: <%= it.issue.labels.length > 0 ? it.issue.labels.map(label => label.name).join(', ') : '—' %>
 
+<%~ include("./comments.eta", it) %>
+
+
 ## Pull Request Information
 
 - **PR ID**: `#<%= it.pullRequest.number %>`
