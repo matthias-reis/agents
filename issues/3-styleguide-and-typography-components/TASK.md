@@ -30,10 +30,10 @@ __Comment on web/src/components/typography/H2.tsx line 10__
 
 ## CI Status
 
-The continuous integration checks have failed. Please review and fix the following:
-
 __tests__: ✅
+
 __build__: ✅
+
 
 ## Pull Request Information
 
