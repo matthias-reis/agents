@@ -10,7 +10,7 @@ body:
     id: summary
     attributes:
       label: Summary
-      description: What happened?
+      description: What happened (be descriptive, detailed and don't add assumptions)?
     validations:
       required: true
   - type: textarea
@@ -25,8 +25,3 @@ body:
     attributes:
       label: Environment details
       description: OS, browser, Node version, etc.
-  - type: textarea
-    id: attachments
-    attributes:
-      label: Logs / screenshots
-      description: Paste relevant logs or attach screenshots.

@@ -10,14 +10,9 @@ body:
     id: summary
     attributes:
       label: Summary
-      description: What problem are we solving?
+      description: Describe what should be built in as much detail as you can
     validations:
       required: true
-  - type: textarea
-    id: proposal
-    attributes:
-      label: Proposed solution
-      description: Outline your approach and reference relevant docs or ADRs.
   - type: textarea
     id: acceptance
     attributes:
