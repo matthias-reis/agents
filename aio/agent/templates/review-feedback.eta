@@ -1,4 +1,4 @@
-# CurrentTask: Work on Feedback for Implementationx
+# CurrentTask: Work on Feedback for Implementation
 
 - **ID**: `#<%= it.issue.number %>`
 - **Title**: `<%= it.issue.title %>`
@@ -16,24 +16,18 @@
 
 <%~ include("./comments.eta", it) %>
 
-<% console.log(it) %>
-
 <% if (it.checks && it.checks.length > 0) { %>
 ## CI Status
 
 The continuous integration checks have failed. Please review and fix the following:
 
 <% it.checks.forEach(check => { %>
-<% if (check.conclusion === 'failure') { %>
-### <%= check.name %>
-- **Status**: <%= check.status %>
-- **Conclusion**: <%= check.conclusion %>
-<% if (check.output) { %>
+__<%= check.name %>__: <%= check.conclusion === 'failure' ? '❌' : '✅' %>
+<% if (check.conclusion === 'failure' && check.output) { %>
 - **Title**: <%= check.output.title %>
 - **Summary**: <%= check.output.summary %>
 <% } %>
 
-<% } %>
 <% }) %>
 <% } %>
 
