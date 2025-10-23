@@ -2,14 +2,14 @@
 
 ## Overview
 
-- Primary stack: SolidStart (SolidJS) UI served via Node runtime using Vinxi. Styling provided by Tailwind CSS with PostCSS tooling.
+- Primary stack: SolidStart (SolidJS) UI served via Node runtime using Vinxi. Styling provided by Tailwind CSS v4 with PostCSS tooling.
 - Source lives under `web/` with routing, entry points, and tests colocated to streamline focus on front-end agent UX.
 - Documentation is centralized here; see [CODEBASE_OVERVIEW.md](./CODEBASE_OVERVIEW.md) for directory-level details and [ADR index](./ADR/README.md) for decision history.
 
 ## Frontend
 
 - SolidStart handles routing, data loading, and hydration. Root layout wraps routes with navigation and shared Tailwind theming defined in `web/src/app.tsx`.
-- Tailwind is configured via `web/tailwind.config.ts` and driven by `web/src/root.css`. Component-level styling uses utility classes exclusively.
+- Tailwind v4 uses CSS-first configuration via `@theme` directive in `web/src/root.css`. Component-level styling uses utility classes exclusively.
 - Testing uses Vitest with the Solid Testing Library (`web/tests/`) to validate interactions and guard regressions.
 
 ## Future Backend

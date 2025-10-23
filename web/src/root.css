@@ -1,8 +1,18 @@
 @import url('https://fonts.googleapis.com/css2?family=Urbanist:wght@300;800&display=swap');
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@theme {
+  --font-family-sans: 'Inter', system-ui, sans-serif;
+  --font-family-urbanist: 'Urbanist', system-ui, sans-serif;
+  --shadow-glow: 0 0 45px -15px rgba(56, 189, 248, 0.45);
+}
+
+@layer utilities {
+  .font-urbanist {
+    font-family: var(--font-family-urbanist);
+  }
+}
 
 :root {
   color-scheme: dark;

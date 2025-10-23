@@ -1,4 +1,4 @@
-import { mkdirSync, existsSync, readFileSync, writeFileSync } from "fs";
+import { mkdirSync, existsSync, readFileSync, writeFileSync, rmSync } from "fs";
 import { join } from "path";
 import { GitHubService } from "./github-service.js";
 import { GitService } from "./git-service.js";
@@ -277,6 +277,21 @@ export class AIOEngine {
         data.issue.number,
         costContent
       );
+    }
+
+    // Delete issue flow files under /issues
+    const issueDir = join(process.cwd(), data.workPackageName);
+    if (existsSync(issueDir)) {
+      rmSync(issueDir, { recursive: true, force: true });
+      console.log(`Deleted issue flow files: ${data.workPackageName}`);
+    }
+
+    // Commit and push the changes
+    this.gitService.addAllFiles();
+    if (this.gitService.hasUncommittedChanges()) {
+      this.gitService.commit(`chore: cleanup issue flow files for #${data.issue.number}`);
+      this.gitService.push();
+      console.log("Committed and pushed cleanup changes");
     }
 
     // Merge PR
