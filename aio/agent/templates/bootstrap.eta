@@ -24,15 +24,5 @@ __<%= it.issue.title %>__
 
 Labels: <%= it.issue.labels.length > 0 ? it.issue.labels.map(label=> label.name).join(', ') : '—' %>
 
-<% if (it.comments && it.comments.length > 0) { %>
-## Feedback Comments
+<%~ include("./comments.eta", it) %>
 
-<% it.comments.forEach(comment => { %>
-__Comment on <%= comment.path %> line <%= comment.line %>__
-<%= comment.body %>.
-<% }) %>
-<% } %>
-<% if (it.pullRequest) { %>
-
-<% }) %>
-<% } %>
