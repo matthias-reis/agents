@@ -28,6 +28,7 @@ __Comment on web/src/components/typography/H2.tsx line 10__
 `H1` and `H2`: Provide balance for the top margin as well. Goal: always have more margin above than below. Also balance it out with the other elements who usually come with `mb-4`..
 
 
+
 ## CI Status
 
 The continuous integration checks have failed. Please review and fix the following:
