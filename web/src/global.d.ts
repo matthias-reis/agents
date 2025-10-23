@@ -6,7 +6,7 @@ declare module "solid-mdx" {
   import { Component, JSX } from "solid-js";
   
   export interface MDXProviderProps {
-    components?: Record<string, Component<any>>;
+    components?: Record<string, Component>;
     children?: JSX.Element;
   }
   
