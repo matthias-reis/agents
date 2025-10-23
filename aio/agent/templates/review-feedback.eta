@@ -20,13 +20,7 @@
 ## CI Status
 
 <% it.checks.forEach(check => { %>
-<% console.log(check) %>
 __<%= check.name %>__: <%= check.conclusion === 'failure' ? '❌' : '✅' %>
-<% if (check.conclusion === 'failure' && check.output) { %>
-- **Title**: <%= check.output.title %>
-- **Summary**: <%= check.output.summary %>
-<% } %>
-
 
 <% }) %>
 <% } %>

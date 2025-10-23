@@ -27,10 +27,8 @@ What is needed is code interpreting MDX and shipping it dynamically through MDX 
 
 ## CI Status
 
-__tests__: ❌- **Title**: null- **Summary**: null
-
+__tests__: ❌
 __build__: ✅
-
 
 ## Pull Request Information
 
