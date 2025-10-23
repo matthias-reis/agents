@@ -20,7 +20,7 @@
 
 __<%= it.issue.title %>__
 
-<%= it.issue.body || 'No description provided' %>
+<%~ it.issue.body || 'No description provided' %>
 
 Labels: <%= it.issue.labels.length > 0 ? it.issue.labels.map(label=> label.name).join(', ') : '—' %>
 
