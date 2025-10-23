@@ -10,8 +10,7 @@ export default defineConfig({
       mdx({
         jsx: true,
         jsxImportSource: "solid-js",
-        providerImportSource: "solid-mdx",
-        jsxRuntime: "automatic"
+        providerImportSource: "solid-mdx"
       })
     ],
     optimizeDeps: {
