@@ -94,6 +94,11 @@ export class AIOEngine {
       );
       comments = [...issueComments, ...prComments];
 
+      // filter out irrelevant comments
+      comments = comments.filter(
+        (comment) => !comment.body.includes("AI Generated Content")
+      );
+
       // Get CI checks
       checks = await this.githubService.getChecks(pullRequest.head.ref);
     } else {
@@ -231,7 +236,8 @@ export class AIOEngine {
 
   private async handleReviewFeedback(data: WorkPackageData): Promise<void> {
     const qaPath = join(process.cwd(), data.workPackageName, "qa.md");
-    const qaContent = readFileSync(qaPath, "utf-8");
+    const qaContent =
+      "[AI Generated Content]\n\n" + readFileSync(qaPath, "utf-8");
     await this.githubService.addCommentToIssue(data.issue.number, qaContent);
 
     const templateData = this.createTemplateData(data);
@@ -265,7 +271,8 @@ export class AIOEngine {
     // Add cost comment to issue
     const costPath = join(process.cwd(), data.workPackageName, "cost.md");
     if (existsSync(costPath)) {
-      const costContent = readFileSync(costPath, "utf-8");
+      const costContent =
+        "[AI Generated Content]\n\n" + readFileSync(costPath, "utf-8");
       await this.githubService.addCommentToIssue(
         data.issue.number,
         costContent
