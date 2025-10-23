@@ -13,10 +13,16 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@mdx-js/mdx": "^3.1.1",
+    "@mdx-js/rollup": "^3.1.1",
     "@solidjs/meta": "^0.29.4",
     "@solidjs/router": "^0.15.3",
     "@solidjs/start": "^1.2.0",
+    "rehype-highlight": "^7.0.2",
+    "remark-frontmatter": "^5.0.0",
+    "remark-gfm": "^4.0.1",
     "solid-js": "^1.9.9",
+    "solid-mdx": "^0.0.7",
     "vinxi": "^0.5.8"
   },
   "devDependencies": {
