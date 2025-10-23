@@ -1,14 +1,12 @@
 
 
 Successfully created task for
-[ #<%= it.issue.number %> ] <%= it.issue.title %>
+Issue: #<%= it.issue.number %>: _<%= it.issue.title %>.
 
 <% if (it.pullRequest) { %>
-**Pull Request**: #<%= it.pullRequest.number %>
+Pull Request: #<%= it.pullRequest.number %>
 <% } %>
 
-`./<%= it.workPackageName %>/TASK.md` written.
-
-You can now copy and place the prompt in your favourite AI Agent:
+You can now copy and place the following prompt in your favourite AI Agent:
 
 Work on the current task description under `./<%= it.workPackageName %>/TASK.md`.

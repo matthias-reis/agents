@@ -1,0 +1,17 @@
+
+<% if (it.comments && it.comments.length > 0) { %>
+## Feedback Comments
+
+<% it.comments.forEach(comment => {%>
+<% if (comment.subject_type !== 'line') { %>
+__Comment__
+<%= comment.body %>.
+
+<% } %>
+<% if (comment.subject_type === 'line' && comment.line) { %>
+__Comment on <%= comment.path %> line <%= comment.line %>__ 
+<%= comment.body %>.
+<% } %>
+<% }) %>
+
+<% } %>

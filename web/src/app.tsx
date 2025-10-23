@@ -38,6 +38,13 @@ export default function App() {
                   >
                     About
                   </A>
+                  <A
+                    class="rounded-md px-3 py-2 transition hover:bg-sky-600/10 hover:text-sky-300"
+                    activeClass="bg-sky-600/20 text-sky-200"
+                    href="/styleguide"
+                  >
+                    Styleguide
+                  </A>
                 </nav>
               </header>
               <main class="mt-10 flex-1">

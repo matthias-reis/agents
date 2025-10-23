@@ -1,5 +1,11 @@
-import { Octokit } from 'octokit';
-import { GitHubIssue, GitHubPullRequest, GitHubComment, GitHubCheck, Config } from './types.js';
+import { Octokit } from "octokit";
+import {
+  GitHubIssue,
+  GitHubPullRequest,
+  GitHubComment,
+  GitHubCheck,
+  Config,
+} from "./types.js";
 
 export class GitHubService {
   private octokit: Octokit;
@@ -8,7 +14,7 @@ export class GitHubService {
   constructor(config: Config) {
     this.config = config;
     this.octokit = new Octokit({
-      auth: config.githubToken
+      auth: config.githubToken,
     });
   }
 
@@ -16,7 +22,7 @@ export class GitHubService {
     const response = await this.octokit.rest.issues.get({
       owner: this.config.owner,
       repo: this.config.repo,
-      issue_number: parseInt(issueNumber)
+      issue_number: parseInt(issueNumber),
     });
     return response.data as GitHubIssue;
   }
@@ -25,7 +31,7 @@ export class GitHubService {
     const response = await this.octokit.rest.pulls.get({
       owner: this.config.owner,
       repo: this.config.repo,
-      pull_number: prNumber
+      pull_number: prNumber,
     });
     return response.data as GitHubPullRequest;
   }
@@ -34,7 +40,7 @@ export class GitHubService {
     const response = await this.octokit.rest.issues.listComments({
       owner: this.config.owner,
       repo: this.config.repo,
-      issue_number: issueNumber
+      issue_number: issueNumber,
     });
     return response.data as GitHubComment[];
   }
@@ -43,7 +49,7 @@ export class GitHubService {
     const response = await this.octokit.rest.pulls.listReviewComments({
       owner: this.config.owner,
       repo: this.config.repo,
-      pull_number: prNumber
+      pull_number: prNumber,
     });
     return response.data as GitHubComment[];
   }
@@ -52,7 +58,7 @@ export class GitHubService {
     const response = await this.octokit.rest.checks.listForRef({
       owner: this.config.owner,
       repo: this.config.repo,
-      ref
+      ref,
     });
     return response.data.check_runs as GitHubCheck[];
   }
@@ -62,16 +68,19 @@ export class GitHubService {
       owner: this.config.owner,
       repo: this.config.repo,
       issue_number: issueNumber,
-      labels: [label]
+      labels: [label],
     });
   }
 
-  async removeLabelFromIssue(issueNumber: number, label: string): Promise<void> {
+  async removeLabelFromIssue(
+    issueNumber: number,
+    label: string
+  ): Promise<void> {
     await this.octokit.rest.issues.removeLabel({
       owner: this.config.owner,
       repo: this.config.repo,
       issue_number: issueNumber,
-      name: label
+      name: label,
     });
   }
 
@@ -79,7 +88,7 @@ export class GitHubService {
     title: string,
     body: string,
     head: string,
-    base: string = 'main',
+    base: string = "main",
     draft: boolean = false
   ): Promise<GitHubPullRequest> {
     const response = await this.octokit.rest.pulls.create({
@@ -89,7 +98,7 @@ export class GitHubService {
       body,
       head,
       base,
-      draft
+      draft,
     });
     return response.data as GitHubPullRequest;
   }
@@ -99,7 +108,7 @@ export class GitHubService {
       owner: this.config.owner,
       repo: this.config.repo,
       issue_number: issueNumber,
-      body
+      body,
     });
   }
 
@@ -108,7 +117,7 @@ export class GitHubService {
       owner: this.config.owner,
       repo: this.config.repo,
       pull_number: prNumber,
-      merge_method: 'squash'
+      merge_method: "squash",
     });
   }
 
@@ -126,7 +135,7 @@ export class GitHubService {
         owner: this.config.owner,
         repo: this.config.repo,
         issue_number: prNumber,
-        name: label.name
+        name: label.name,
       });
     }
   }

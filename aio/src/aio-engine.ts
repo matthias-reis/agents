@@ -45,17 +45,20 @@ export class AIOEngine {
       case "BOOTSTRAP":
         await this.handleBootstrap(workPackageData);
         break;
-      case "PLAN-PROPOSED":
-        await this.handlePlanProposed(workPackageData);
+      case "PLAN-FEEDBACK":
+        await this.handlePlanFeedback(workPackageData);
         break;
       case "PLAN-APPROVED":
         await this.handlePlanApproved(workPackageData);
         break;
-      case "REVIEW":
-        await this.handleReview(workPackageData);
+      case "REVIEW-FEEDBACK":
+        await this.handleReviewFeedback(workPackageData);
         break;
       case "READY-TO-MERGE":
         await this.handleReadyToMerge(workPackageData);
+        break;
+      default:
+        await this.handleUndetermined(workPackageData);
         break;
     }
   }
@@ -91,6 +94,11 @@ export class AIOEngine {
       );
       comments = [...issueComments, ...prComments];
 
+      // filter out irrelevant comments
+      comments = comments.filter(
+        (comment) => !comment.body.includes("AI Generated Content")
+      );
+
       // Get CI checks
       checks = await this.githubService.getChecks(pullRequest.head.ref);
     } else {
@@ -115,10 +123,10 @@ export class AIOEngine {
       return "READY-TO-MERGE";
     }
 
-    if (labels.includes("in-review") && labels.includes("locked")) {
+    if (labels.includes("in-review")) {
       const qaPath = join(process.cwd(), data.workPackageName, "qa.md");
       if (existsSync(qaPath)) {
-        return "REVIEW";
+        return "REVIEW-FEEDBACK";
       }
     }
 
@@ -127,18 +135,15 @@ export class AIOEngine {
     }
 
     if (labels.includes("plan-proposed") && data.comments.length > 0) {
-      return "PLAN-PROPOSED";
+      return "PLAN-FEEDBACK";
     }
 
     if (labels.includes("ready-for-agent")) {
       return "BOOTSTRAP";
     }
 
-    // Default to BOOTSTRAP if no labels match but issue exists
-    console.log(
-      `No matching state found for issue #${data.issue.number}, defaulting to BOOTSTRAP`
-    );
-    return "BOOTSTRAP";
+    // Default to UNDETERMINED which calls a noop if no labels match but issue exists
+    return "UNDETERMINED";
   }
 
   private async handleBootstrap(data: WorkPackageData): Promise<void> {
@@ -154,7 +159,7 @@ export class AIOEngine {
     this.templateService.writeCostFile(data.workPackageName, costContent);
 
     // Always commit and push the bootstrap files to create commits for PR
-    await this.commitAndPush(data, "Initial bootstrap setup");
+    await this.commitAndPush(data, "chore(aio): bootstrapping ai work package");
 
     // Create PR
     const pr = await this.githubService.createPullRequest(
@@ -187,10 +192,12 @@ export class AIOEngine {
     this.outputPrompt(templateData);
   }
 
-  private async handlePlanProposed(data: WorkPackageData): Promise<void> {
+  private async handlePlanFeedback(data: WorkPackageData): Promise<void> {
     const planPath = join(process.cwd(), data.workPackageName, "PLAN.md");
     if (!existsSync(planPath)) {
-      console.log("PLAN.md does not exist. Bailing out.");
+      console.log(
+        "PLAN.md does not exist. Please look at the Github issue again and assign the label 'ready-for-agent' if needed."
+      );
       return;
     }
 
@@ -199,7 +206,10 @@ export class AIOEngine {
     const taskContent = this.templateService.renderPlanFeedback(templateData);
     this.templateService.writeTaskFile(data.workPackageName, taskContent);
 
-    await this.commitAndPush(data, "Update task with plan feedback");
+    await this.commitAndPush(
+      data,
+      "chore(aio): update task with plan feedback"
+    );
     this.outputPrompt(templateData);
   }
 
@@ -214,40 +224,36 @@ export class AIOEngine {
 
     // Create or override TASK.md
     const templateData = this.createTemplateData(data);
-    const taskContent = this.templateService.renderPlanFeedback(templateData);
+    const taskContent = this.templateService.renderPlanApproved(templateData);
     this.templateService.writeTaskFile(data.workPackageName, taskContent);
 
-    await this.commitAndPush(data, "Plan approved - ready for implementation");
+    await this.commitAndPush(
+      data,
+      "chore(aio): update task for for implementation"
+    );
     this.outputPrompt(templateData);
   }
 
-  private async handleReview(data: WorkPackageData): Promise<void> {
+  private async handleReviewFeedback(data: WorkPackageData): Promise<void> {
     const qaPath = join(process.cwd(), data.workPackageName, "qa.md");
-    const qaContent = readFileSync(qaPath, "utf-8");
+    const qaContent =
+      "[AI Generated Content]\n\n" + readFileSync(qaPath, "utf-8");
+    await this.githubService.addCommentToIssue(data.issue.number, qaContent);
 
-    // Check CI status
-    const hasFailedChecks = data.checks.some(
-      (check) => check.conclusion === "failure"
-    );
+    const templateData = this.createTemplateData(data);
+    const taskContent = this.templateService.renderReviewFeedback(templateData);
+    this.templateService.writeTaskFile(data.workPackageName, taskContent);
 
-    if (hasFailedChecks) {
-      // CI is red - create task with CI failed template
-      const templateData = this.createTemplateData(data);
-      const taskContent = this.templateService.renderCiFailed(templateData);
-      this.templateService.writeTaskFile(data.workPackageName, taskContent);
-
-      await this.commitAndPush(data, "CI failed - fix required");
-      this.outputPrompt(templateData);
-    } else {
-      // CI is green - remove locked label and post QA comment
+    await this.commitAndPush(data, "chore(aio): report fixes required");
+    this.outputPrompt(templateData);
+    // CI is green - remove locked label and post QA comment
+    try {
       await this.githubService.removeLabelFromIssue(
         data.issue.number,
         "locked"
       );
-      await this.githubService.addCommentToIssue(data.issue.number, qaContent);
-
-      const templateData = this.createTemplateData(data, qaContent);
-      console.log(this.templateService.renderQa(templateData));
+    } catch (error) {
+      // noop - continue if label removal fails
     }
   }
 
@@ -265,7 +271,8 @@ export class AIOEngine {
     // Add cost comment to issue
     const costPath = join(process.cwd(), data.workPackageName, "cost.md");
     if (existsSync(costPath)) {
-      const costContent = readFileSync(costPath, "utf-8");
+      const costContent =
+        "[AI Generated Content]\n\n" + readFileSync(costPath, "utf-8");
       await this.githubService.addCommentToIssue(
         data.issue.number,
         costContent
@@ -276,6 +283,13 @@ export class AIOEngine {
     await this.githubService.mergePullRequest(data.pullRequest.number);
 
     console.log("You successfully completed this task! Congrats!");
+  }
+
+  private async handleUndetermined(data: WorkPackageData): Promise<void> {
+    console.log(`Issue #${data.issue.number} is in an undetermined state.`);
+    console.log(
+      "If you want an AI Agent to work on it, please add the label 'ready-for-agent' to the Github Ticket and re-run the script!"
+    );
   }
 
   private createNameSlug(title: string): string {
