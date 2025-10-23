@@ -16,6 +16,7 @@
 
 <%~ include("./comments.eta", it) %>
 
+<% JSON.stringify(it.checks, null, 2) %>
 <% if (it.checks && it.checks.length > 0) { %>
 ## CI Status
 
